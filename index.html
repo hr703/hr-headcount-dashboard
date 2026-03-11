@@ -15,6 +15,7 @@ function importMISData(){
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -245,11 +246,9 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
   <div class="login-box">
     <div class="login-logo">&#128101;</div>
     <h2>HR Headcount Dashboard</h2>
-    <p>Enter your password to continue</p>
-    <input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
-    <button class="login-btn" onclick="doLogin()">Login</button>
-    <button class="login-btn" style="background:linear-gradient(135deg,#10b981,#059669);margin-top:8px" onclick="importMISData()">&#128196; Import MIS Data (356 employees)</button>
-    <div class="login-err" id="loginErr">&#10060; Incorrect password. Try again.</div>
+    <p>Sign in with your Cuemath email to continue</p>
+    <div id="googleSignInBtn" style="display:flex;justify-content:center;margin:16px 0"></div>
+    <div class="login-err" id="loginErr">&#10060; Only @cuemath.com emails are allowed.</div>
   </div>
 </div>
 
@@ -2065,22 +2064,34 @@ function renderEsopTable(){
 }
 
 // ================================================================
+// LOGIN — Google OAuth
 // ================================================================
-// LOGIN
-// ================================================================
-const ADMIN_PASS = 'HR@Admin2025';
+const GOOGLE_CLIENT_ID = '370807178893-dmhvjqvinojrum1igr0898a7jkcgo2df.apps.googleusercontent.com';
+const ALLOWED_DOMAIN   = 'cuemath.com';
 
-function doLogin(){
-  const pass = document.getElementById('loginPass').value;
-  const err  = document.getElementById('loginErr');
-  if(pass === ADMIN_PASS){
+function handleGoogleLogin(response){
+  const payload = JSON.parse(atob(response.credential.split('.')[1]));
+  const email   = payload.email || '';
+  const err     = document.getElementById('loginErr');
+  if(email.endsWith('@' + ALLOWED_DOMAIN)){
+    err.style.display = 'none';
     document.getElementById('loginScreen').style.display = 'none';
     initApp();
   } else {
     err.style.display = 'block';
-    document.getElementById('loginPass').value = '';
   }
 }
+
+window.onload = function(){
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback:  handleGoogleLogin
+  });
+  google.accounts.id.renderButton(
+    document.getElementById('googleSignInBtn'),
+    { theme: 'outline', size: 'large', width: 280 }
+  );
+};
 
 // INIT
 // ================================================================
@@ -2099,9 +2110,6 @@ function initApp(){
     })
     .catch(()=>{ render(); renderEsopSummary(); });
 }
-
-// Show login screen on load (don't auto-init)
-document.getElementById('loginPass').focus();
 </script>
 </body>
 </html>
