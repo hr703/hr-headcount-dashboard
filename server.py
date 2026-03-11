@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 DATA_FILE    = os.path.join(os.path.dirname(__file__), 'data.json')
 DATABASE_URL = os.environ.get('DATABASE_URL')
+API_TOKEN    = os.environ.get('API_TOKEN', 'hr-secure-2025')
 
 # ── STORAGE ──────────────────────────────────────────────────────────────────
 if DATABASE_URL:
@@ -66,9 +67,18 @@ class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200); self.send_cors(); self.end_headers()
 
+    def check_token(self):
+        token = self.headers.get('X-Auth-Token', '')
+        return token == API_TOKEN
+
     def do_GET(self):
         path = urlparse(self.path).path
         if path == '/api/data':
+            if not self.check_token():
+                self.send_response(401)
+                self.send_cors(); self.end_headers()
+                self.wfile.write(b'{"error":"unauthorized"}')
+                return
             body = json.dumps(load_data()).encode()
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
@@ -86,6 +96,11 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path   = urlparse(self.path).path
+        if not self.check_token():
+            self.send_response(401)
+            self.send_cors(); self.end_headers()
+            self.wfile.write(b'{"error":"unauthorized"}')
+            return
         length = int(self.headers.get('Content-Length', 0))
         body   = json.loads(self.rfile.read(length))
 

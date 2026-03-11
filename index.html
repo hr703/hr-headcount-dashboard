@@ -873,7 +873,7 @@ Chart.register(ChartDataLabels);
 
 // Load from API on startup
 window._apiLoaded = false;
-fetch('/api/data')
+fetch('/api/data', {headers:{'X-Auth-Token':'hr-secure-2025'}})
   .then(r=>r.json())
   .then(d=>{
     if(d.emp_data && d.emp_data.length>0){
@@ -897,7 +897,7 @@ function save(){
     emp_esops: esops,
     emp_esop_pool: parseInt(document.getElementById('esopPool')?.value||50000)
   };
-  fetch('/api/data', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)})
+  fetch('/api/data', {method:'POST', headers:{'Content-Type':'application/json','X-Auth-Token':'hr-secure-2025'}, body:JSON.stringify(data)})
     .catch(e => console.error('Save error:', e));
   // Keep localStorage as backup
   localStorage.setItem('emp_data',      JSON.stringify(employees));
