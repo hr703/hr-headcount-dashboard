@@ -2067,18 +2067,22 @@ function renderEsopTable(){
 // LOGIN — Google OAuth
 // ================================================================
 const GOOGLE_CLIENT_ID = '370807178893-dmhvjqvinojrum1igr0898a7jkcgo2df.apps.googleusercontent.com';
-const ALLOWED_DOMAIN   = 'cuemath.com';
+const ALLOWED_EMAILS   = [
+  'ajay.yadav@cuemath.com',
+  'manan@cuemath.com'
+];
 
 function handleGoogleLogin(response){
   const payload = JSON.parse(atob(response.credential.split('.')[1]));
-  const email   = payload.email || '';
+  const email   = (payload.email || '').toLowerCase();
   const err     = document.getElementById('loginErr');
-  if(email.endsWith('@' + ALLOWED_DOMAIN)){
+  if(ALLOWED_EMAILS.includes(email)){
     err.style.display = 'none';
     document.getElementById('loginScreen').style.display = 'none';
     initApp();
   } else {
     err.style.display = 'block';
+    err.textContent = '❌ Access denied. You are not authorized to use this dashboard.';
   }
 }
 
