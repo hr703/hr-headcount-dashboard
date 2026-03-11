@@ -469,7 +469,6 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
             <th>Notice Cost (&#8377;)</th>
             <th>Joining Cost (&#8377;)</th>
             <th>Total Cost (&#8377;)</th>
-            <th>Avg CTC (&#8377;)</th>
             <th>Cost Share %</th>
           </tr></thead>
           <tbody id="costDeptBody"></tbody>
@@ -1559,10 +1558,9 @@ function renderCostTab(){
       <td>${d}</td><td>${v.total}</td>
       <td>${fmt(v.activeCost)}</td><td>${fmt(v.noticeCost)}</td><td>${fmt(v.joiningCost)}</td>
       <td style="font-weight:700">${fmt(v.totalCost)}</td>
-      <td>${fmt(v.total>0?Math.round(v.totalCost/v.total):0)}</td>
       <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill" style="width:${pct(v.totalCost,totalCost)}"></div></div><span style="font-size:11px;color:var(--muted);min-width:38px">${pct(v.totalCost,totalCost)}</span></div></td>
     </tr>`).join('');
-  tfoot.innerHTML=`<tr><td>TOTAL</td><td>${total}</td><td>${fmt(activeCost)}</td><td>${fmt(noticeCost)}</td><td>${fmt(joiningCost)}</td><td>${fmt(totalCost)}</td><td>${fmt(total>0?Math.round(totalCost/total):0)}</td><td>100%</td></tr>`;
+  tfoot.innerHTML=`<tr><td>TOTAL</td><td>${total}</td><td>${fmt(activeCost)}</td><td>${fmt(noticeCost)}</td><td>${fmt(joiningCost)}</td><td>${fmt(totalCost)}</td><td>100%</td></tr>`;
 
   // Dept cost bar chart
   const dLabels=Object.keys(depts).sort((a,b)=>depts[b].totalCost-depts[a].totalCost).slice(0,8);
