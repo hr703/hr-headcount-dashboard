@@ -16,9 +16,9 @@ if DATABASE_URL:
     def _init():
         with _conn() as c:
             with c.cursor() as cur:
-                cur.execute('''CREATE TABLE IF NOT EXISTS appdata
+                cur.execute('''CREATE TABLE IF NOT EXISTS hr_appdata
                                (id INT PRIMARY KEY, data TEXT NOT NULL)''')
-                cur.execute('''INSERT INTO appdata (id, data)
+                cur.execute('''INSERT INTO hr_appdata (id, data)
                                VALUES (1, %s) ON CONFLICT (id) DO NOTHING''',
                             [json.dumps({'emp_data':[],'emp_depts':[],'emp_revisions':[],'emp_esops':[],'emp_esop_pool':50000})])
                 c.commit()
@@ -28,7 +28,7 @@ if DATABASE_URL:
         try:
             with _conn() as c:
                 with c.cursor() as cur:
-                    cur.execute('SELECT data FROM appdata WHERE id=1')
+                    cur.execute('SELECT data FROM hr_appdata WHERE id=1')
                     row = cur.fetchone()
                     return json.loads(row[0]) if row else {}
         except Exception as e:
@@ -39,7 +39,7 @@ if DATABASE_URL:
         try:
             with _conn() as c:
                 with c.cursor() as cur:
-                    cur.execute('UPDATE appdata SET data=%s WHERE id=1', [json.dumps(data)])
+                    cur.execute('UPDATE hr_appdata SET data=%s WHERE id=1', [json.dumps(data)])
                     c.commit()
         except Exception as e:
             print(f'[DB WRITE ERROR] {e}')
