@@ -872,6 +872,7 @@ let chartRevDept, chartRevType, chartRevPct;
 Chart.register(ChartDataLabels);
 
 // Load from API on startup
+window._apiLoaded = false;
 fetch('/api/data')
   .then(r=>r.json())
   .then(d=>{
@@ -881,9 +882,10 @@ fetch('/api/data')
       revisions   = d.emp_revisions || [];
       esops       = d.emp_esops || [];
     }
-    render();
+    window._apiLoaded = true;
+    if(window._appInited){ render(); renderEsopSummary(); }
   })
-  .catch(()=>{ render(); });
+  .catch(()=>{ window._apiLoaded = true; });
 
 document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
@@ -2097,9 +2099,13 @@ function doLogin(){
 // INIT
 // ================================================================
 function initApp(){
+  window._appInited = true;
   populateDeptDropdowns();
-  if(employees.length===0) loadDemoData();
-  else { render(); renderEsopSummary(); }
+  if(window._apiLoaded){ render(); renderEsopSummary(); }
+  else {
+    // API still loading, show loading state then retry
+    setTimeout(()=>{ render(); renderEsopSummary(); }, 1500);
+  }
 }
 
 // Show login screen on load (don't auto-init)
