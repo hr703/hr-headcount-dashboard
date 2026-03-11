@@ -1071,7 +1071,7 @@ function renderRevKPIs(){
   document.getElementById('rv-max-name').textContent     = maxRev?maxRev.empName:'-';
 }
 
-function fmt(n){ return '\u20B9'+n.toLocaleString('en-IN'); }
+function fmt(n){ return '\u20B9'+Math.round(n).toLocaleString('en-IN'); }
 function pct(v,t){ return t>0?((v/t)*100).toFixed(1)+'%':'0%'; }
 
 function renderKPIs(){
