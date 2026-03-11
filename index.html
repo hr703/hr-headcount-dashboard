@@ -871,21 +871,7 @@ let chartRevDept, chartRevType, chartRevPct;
 
 Chart.register(ChartDataLabels);
 
-// Load from API on startup
-window._apiLoaded = false;
-fetch('/api/data', {headers:{'X-Auth-Token':'hr-secure-2025'}})
-  .then(r=>r.json())
-  .then(d=>{
-    if(d.emp_data && d.emp_data.length>0){
-      employees   = d.emp_data;
-      departments = d.emp_depts || departments;
-      revisions   = d.emp_revisions || [];
-      esops       = d.emp_esops || [];
-    }
-    window._apiLoaded = true;
-    if(window._appInited){ render(); renderEsopSummary(); }
-  })
-  .catch(()=>{ window._apiLoaded = true; });
+// API fetch moved to initApp (after login)
 
 document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
@@ -2099,13 +2085,19 @@ function doLogin(){
 // INIT
 // ================================================================
 function initApp(){
-  window._appInited = true;
   populateDeptDropdowns();
-  if(window._apiLoaded){ render(); renderEsopSummary(); }
-  else {
-    // API still loading, show loading state then retry
-    setTimeout(()=>{ render(); renderEsopSummary(); }, 1500);
-  }
+  fetch('/api/data', {headers:{'X-Auth-Token':'hr-secure-2025'}})
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.emp_data && d.emp_data.length>0){
+        employees   = d.emp_data;
+        departments = d.emp_depts || departments;
+        revisions   = d.emp_revisions || [];
+        esops       = d.emp_esops || [];
+      }
+      render(); renderEsopSummary();
+    })
+    .catch(()=>{ render(); renderEsopSummary(); });
 }
 
 // Show login screen on load (don't auto-init)
