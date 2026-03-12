@@ -985,7 +985,10 @@ function editEmployee(empId){
   document.getElementById('f-email').value   =e.email||'';
   document.getElementById('formTitle').textContent='Edit Employee';
   document.getElementById('cancelEdit').style.display='block';
-  window.scrollTo({top:0,behavior:'smooth'});
+  // Switch to Employees tab if not already there
+  const empBtn = document.querySelector('.tab-btn[onclick*="employees"]');
+  if(empBtn) switchTab('employees', empBtn);
+  setTimeout(()=>document.getElementById('f-id').scrollIntoView({behavior:'smooth',block:'start'}), 200);
 }
 function deleteEmployee(empId){
   if(!confirm('Delete this employee?')) return;
