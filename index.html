@@ -597,7 +597,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
             <th>Emp ID</th><th>Name</th><th>Gender</th><th>Type</th>
             <th>Department</th><th>Designation</th><th>Manager</th><th>Location</th>
             <th>Status</th><th class="salary-col">Monthly CTC (&#8377;)</th><th>DOJ</th>
-            <th>Mobile</th><th>Actions</th>
+            <th>Mobile</th><th>Email</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="empBody"><tr><td colspan="15" class="empty-msg">No employees added yet.</td></tr></tbody>
@@ -1294,7 +1294,7 @@ function renderEmpTable(){
       <td>${e.dept}</td><td>${e.desig||'-'}</td><td>${e.manager||'-'}</td><td>${e.location||'-'}</td>
       <td>${badge[e.status]||e.status}</td>
       <td class="salary-col" style="font-weight:600">${fmt(e.salary||0)}</td>
-      <td>${e.doj||'-'}</td><td>${e.mobile||'-'}</td>
+      <td>${e.doj||'-'}</td><td>${e.mobile||'-'}</td><td>-</td>
       <td><div class="actions">
         <button class="btn btn-blue btn-sm" onclick="editEmployeeByIdx(${employees.indexOf(e)})">Edit</button>
         <button class="btn btn-red  btn-sm" onclick="deleteEmployeeByIdx(${employees.indexOf(e)})">Del</button>
