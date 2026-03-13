@@ -967,29 +967,31 @@ function saveEmployee(){
   }
   save(); clearForm(); render();
 }
-function editEmployee(empId){
-  const e=employees.find(x=>x.id===empId); if(!e) return;
-  // Populate modal fields
-  document.getElementById('em-id').value       = e.id;
-  document.getElementById('em-empId').textContent = e.id;
-  document.getElementById('em-name').value     = e.name||'';
-  document.getElementById('em-dept').value     = e.dept||'';
-  document.getElementById('em-desig').value    = e.desig||'';
-  document.getElementById('em-status').value   = e.status||'Active';
-  document.getElementById('em-salary').value   = e.salary||'';
-  document.getElementById('em-doj').value      = e.doj||'';
-  document.getElementById('em-gender').value   = e.gender||'';
-  document.getElementById('em-type').value     = e.type||'';
-  document.getElementById('em-manager').value  = e.manager||'';
-  document.getElementById('em-location').value = e.location||'';
-  document.getElementById('em-mobile').value   = e.mobile||'';
-  document.getElementById('em-email').value    = e.email||'';
+function editEmployeeByIdx(idx){
+  const e=employees[idx]; if(!e) return;
+  document.getElementById('em-id').value          = idx;
+  document.getElementById('em-empId').textContent = e.id||'';
+  document.getElementById('em-name').value        = e.name||'';
+  document.getElementById('em-dept').value        = e.dept||'';
+  document.getElementById('em-desig').value       = e.desig||'';
+  document.getElementById('em-status').value      = e.status||'Active';
+  document.getElementById('em-salary').value      = e.salary||'';
+  document.getElementById('em-doj').value         = e.doj||'';
+  document.getElementById('em-gender').value      = e.gender||'';
+  document.getElementById('em-type').value        = e.type||'';
+  document.getElementById('em-manager').value     = e.manager||'';
+  document.getElementById('em-location').value    = e.location||'';
+  document.getElementById('em-mobile').value      = e.mobile||'';
+  document.getElementById('em-email').value       = e.email||'';
   document.getElementById('editEmpModal').style.display='flex';
+}
+function editEmployee(empId){
+  const idx=employees.findIndex(x=>x.id===empId);
+  if(idx>=0) editEmployeeByIdx(idx);
 }
 function closeEditEmpModal(){ document.getElementById('editEmpModal').style.display='none'; }
 function saveEditEmpModal(){
-  const id = document.getElementById('em-id').value;
-  const idx = employees.findIndex(e=>e.id===id); if(idx<0) return;
+  const idx = parseInt(document.getElementById('em-id').value); if(isNaN(idx)||idx<0) return;
   employees[idx].name     = document.getElementById('em-name').value.trim();
   employees[idx].dept     = document.getElementById('em-dept').value;
   employees[idx].desig    = document.getElementById('em-desig').value.trim();
@@ -1005,6 +1007,13 @@ function saveEditEmpModal(){
   save(); render();
   toast('Employee updated successfully','#0ea5e9');
   closeEditEmpModal();
+}
+function deleteEmployeeByIdx(idx){
+  const e=employees[idx]; if(!e) return;
+  if(!confirm('Delete '+e.name+'?')) return;
+  employees.splice(idx,1);
+  save(); render();
+  toast('Deleted: '+e.name,'#ef4444');
 }
 function deleteEmployee(empId){
   if(!confirm('Delete this employee?')) return;
@@ -1244,8 +1253,8 @@ function renderEmpTable(){
       <td class="salary-col" style="font-weight:600">${fmt(e.salary||0)}</td>
       <td>${e.doj||'-'}</td><td>${e.mobile||'-'}</td><td>${e.email||'-'}</td>
       <td><div class="actions">
-        <button class="btn btn-blue btn-sm edit-emp-btn" data-empid="${e.id}">Edit</button>
-        <button class="btn btn-red  btn-sm del-emp-btn"  data-empid="${e.id}">Del</button>
+        <button class="btn btn-blue btn-sm" onclick="editEmployeeByIdx(${employees.indexOf(e)})">Edit</button>
+        <button class="btn btn-red  btn-sm" onclick="deleteEmployeeByIdx(${employees.indexOf(e)})">Del</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -2151,13 +2160,7 @@ function initApp(){
     .catch(()=>{ render(); renderEsopSummary(); });
 }
 
-// Event delegation for edit/delete buttons (avoids issues with special chars in IDs)
-document.addEventListener('click', function(ev){
-  const editBtn = ev.target.closest('.edit-emp-btn');
-  const delBtn  = ev.target.closest('.del-emp-btn');
-  if(editBtn){ editEmployee(editBtn.dataset.empid); }
-  if(delBtn) { deleteEmployee(delBtn.dataset.empid); }
-});
+
 </script>
 
 <!-- EDIT EMPLOYEE MODAL -->
