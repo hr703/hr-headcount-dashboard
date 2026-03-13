@@ -302,6 +302,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       <button class="tab-btn" onclick="switchTab('employees',this)">&#128101; Employees</button>
       <button class="tab-btn" onclick="switchTab('revision',this)">&#128200; Mid Year Salary Revision</button>
       <button class="tab-btn" onclick="switchTab('esop',this)">&#127381; ESOP</button>
+      <button class="tab-btn" onclick="switchTab('rr',this)">&#128683; RR Employees</button>
     </div>
   </div>
 
@@ -860,6 +861,48 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
     </div>
 
   </div><!-- /tab-esop -->
+  <!-- ════════════════ TAB: RR EMPLOYEES ════════════════ -->
+  <div class="tab-content" id="tab-rr">
+    <div class="panel">
+      <div class="panel-hdr">&#128683; RR Employees — Department-wise Summary</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px" id="rrSummaryTable">
+          <thead>
+            <tr style="background:#fee2e2;color:#991b1b">
+              <th style="padding:10px;text-align:left;border-bottom:2px solid #fca5a5">Department</th>
+              <th style="padding:10px;text-align:center;border-bottom:2px solid #fca5a5">RR Count</th>
+              <th style="padding:10px;text-align:center;border-bottom:2px solid #fca5a5">% of Dept</th>
+              <th style="padding:10px;text-align:right;border-bottom:2px solid #fca5a5">Monthly CTC (&#8377;)</th>
+            </tr>
+          </thead>
+          <tbody id="rrSummaryBody"></tbody>
+          <tfoot id="rrSummaryFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-hdr">&#128683; RR Employee List</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="background:#f8fafc;color:#1e3a5f">
+              <th style="padding:9px 10px;border-bottom:2px solid #e2e8f0;text-align:left">Employee ID</th>
+              <th style="padding:9px 10px;border-bottom:2px solid #e2e8f0;text-align:left">Name</th>
+              <th style="padding:9px 10px;border-bottom:2px solid #e2e8f0;text-align:left">Department</th>
+              <th style="padding:9px 10px;border-bottom:2px solid #e2e8f0;text-align:left">Designation</th>
+              <th style="padding:9px 10px;border-bottom:2px solid #e2e8f0;text-align:left">Employee Type</th>
+              <th style="padding:9px 10px;border-bottom:2px solid #e2e8f0;text-align:left">Manager</th>
+              <th style="padding:9px 10px;border-bottom:2px solid #e2e8f0;text-align:right">Monthly CTC (&#8377;)</th>
+              <th style="padding:9px 10px;border-bottom:2px solid #e2e8f0;text-align:left">Date of Joining</th>
+              <th style="padding:9px 10px;border-bottom:2px solid #e2e8f0;text-align:left">Email</th>
+            </tr>
+          </thead>
+          <tbody id="rrListBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div><!-- /tab-rr -->
 
 </div><!-- /container -->
 
@@ -1563,6 +1606,7 @@ function switchTab(name, btn){
     if(name==='cost')     renderCostTab();
     if(name==='revision') renderRevisionTab();
     if(name==='esop')     renderEsopTab();
+    if(name==='rr')       renderRRTab();
   });
 }
 
@@ -2160,6 +2204,58 @@ function initApp(){
     .catch(()=>{ render(); renderEsopSummary(); });
 }
 
+
+
+// ================================================================
+// RR TAB
+// ================================================================
+function renderRRTab(){
+  const rrEmps = employees.filter(e=>e.status==='RR');
+  const depts = {};
+  const allDeptCounts = {};
+  employees.forEach(e=>{
+    if(!allDeptCounts[e.dept]) allDeptCounts[e.dept]=0;
+    allDeptCounts[e.dept]++;
+  });
+  rrEmps.forEach(e=>{
+    if(!depts[e.dept]) depts[e.dept]={count:0,cost:0};
+    depts[e.dept].count++;
+    depts[e.dept].cost+=(e.salary||0);
+  });
+  const tbody=document.getElementById('rrSummaryBody');
+  const tfoot=document.getElementById('rrSummaryFoot');
+  const bgs=['#fff','#fff7f7'];
+  if(!Object.keys(depts).length){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:20px;color:#94a3b8">No RR employees found.</td></tr>';
+    tfoot.innerHTML=''; 
+  } else {
+    tbody.innerHTML=Object.entries(depts).sort((a,b)=>b[1].count-a[1].count).map(([dept,v],i)=>{
+      const pctVal=((v.count/(allDeptCounts[dept]||1))*100).toFixed(1)+'%';
+      return `<tr style="background:${bgs[i%2]}">
+        <td style="padding:9px 12px;border-bottom:1px solid #fee2e2;font-weight:600;color:#1e3a5f">${dept}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #fee2e2;text-align:center"><span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:20px;font-weight:700">${v.count}</span></td>
+        <td style="padding:9px 12px;border-bottom:1px solid #fee2e2;text-align:center;color:#64748b">${pctVal}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #fee2e2;text-align:right;font-weight:600">&#8377;${fmt(v.cost)}</td>
+      </tr>`;
+    }).join('');
+    const totCount=rrEmps.length;
+    const totCost=rrEmps.reduce((s,e)=>s+(e.salary||0),0);
+    tfoot.innerHTML=`<tr style="background:#fee2e2;font-weight:800"><td style="padding:10px 12px;color:#991b1b">TOTAL</td><td style="padding:10px 12px;text-align:center;color:#991b1b">${totCount}</td><td style="padding:10px 12px;text-align:center;color:#991b1b">${((totCount/Math.max(employees.length,1))*100).toFixed(1)}%</td><td style="padding:10px 12px;text-align:right;color:#991b1b">&#8377;${fmt(totCost)}</td></tr>`;
+  }
+  const listBody=document.getElementById('rrListBody');
+  if(!rrEmps.length){ listBody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:20px;color:#94a3b8">No RR employees found.</td></tr>'; return; }
+  listBody.innerHTML=rrEmps.map((e,i)=>`<tr style="background:${i%2===0?'#fff':'#fff7f7'}">
+    <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;color:#1e3a5f">${e.id||'-'}</td>
+    <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:600">${e.name||'-'}</td>
+    <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9">${e.dept||'-'}</td>
+    <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9">${e.desig||'-'}</td>
+    <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9">${e.type||'-'}</td>
+    <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9">${e.manager||'-'}</td>
+    <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:600">&#8377;${fmt(e.salary||0)}</td>
+    <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9">${e.doj||'-'}</td>
+    <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#0ea5e9">${e.email||'-'}</td>
+  </tr>`).join('');
+}
 
 </script>
 
