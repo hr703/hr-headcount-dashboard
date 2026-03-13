@@ -969,26 +969,42 @@ function saveEmployee(){
 }
 function editEmployee(empId){
   const e=employees.find(x=>x.id===empId); if(!e) return;
-  document.getElementById('editId').value    =e.id;
-  document.getElementById('f-id').value      =e.id;
-  document.getElementById('f-name').value    =e.name;
-  document.getElementById('f-dept').value    =e.dept;
-  document.getElementById('f-desig').value   =e.desig||'';
-  document.getElementById('f-status').value  =e.status;
-  document.getElementById('f-salary').value  =e.salary||'';
-  document.getElementById('f-doj').value     =e.doj||'';
-  document.getElementById('f-gender').value  =e.gender||'';
-  document.getElementById('f-type').value    =e.type||'';
-  document.getElementById('f-manager').value =e.manager||'';
-  document.getElementById('f-location').value=e.location||'';
-  document.getElementById('f-mobile').value  =e.mobile||'';
-  document.getElementById('f-email').value   =e.email||'';
-  document.getElementById('formTitle').textContent='Edit Employee';
-  document.getElementById('cancelEdit').style.display='block';
-  // Switch to Employees tab if not already there
-  const empBtn = document.querySelector('.tab-btn[onclick*="employees"]');
-  if(empBtn) switchTab('employees', empBtn);
-  setTimeout(()=>document.getElementById('f-id').scrollIntoView({behavior:'smooth',block:'start'}), 200);
+  // Populate modal fields
+  document.getElementById('em-id').value       = e.id;
+  document.getElementById('em-empId').textContent = e.id;
+  document.getElementById('em-name').value     = e.name||'';
+  document.getElementById('em-dept').value     = e.dept||'';
+  document.getElementById('em-desig').value    = e.desig||'';
+  document.getElementById('em-status').value   = e.status||'Active';
+  document.getElementById('em-salary').value   = e.salary||'';
+  document.getElementById('em-doj').value      = e.doj||'';
+  document.getElementById('em-gender').value   = e.gender||'';
+  document.getElementById('em-type').value     = e.type||'';
+  document.getElementById('em-manager').value  = e.manager||'';
+  document.getElementById('em-location').value = e.location||'';
+  document.getElementById('em-mobile').value   = e.mobile||'';
+  document.getElementById('em-email').value    = e.email||'';
+  document.getElementById('editEmpModal').style.display='flex';
+}
+function closeEditEmpModal(){ document.getElementById('editEmpModal').style.display='none'; }
+function saveEditEmpModal(){
+  const id = document.getElementById('em-id').value;
+  const idx = employees.findIndex(e=>e.id===id); if(idx<0) return;
+  employees[idx].name     = document.getElementById('em-name').value.trim();
+  employees[idx].dept     = document.getElementById('em-dept').value;
+  employees[idx].desig    = document.getElementById('em-desig').value.trim();
+  employees[idx].status   = document.getElementById('em-status').value;
+  employees[idx].salary   = parseFloat(document.getElementById('em-salary').value)||0;
+  employees[idx].doj      = document.getElementById('em-doj').value;
+  employees[idx].gender   = document.getElementById('em-gender').value;
+  employees[idx].type     = document.getElementById('em-type').value;
+  employees[idx].manager  = document.getElementById('em-manager').value.trim();
+  employees[idx].location = document.getElementById('em-location').value.trim();
+  employees[idx].mobile   = document.getElementById('em-mobile').value.trim();
+  employees[idx].email    = document.getElementById('em-email').value.trim();
+  save(); render();
+  toast('Employee updated successfully','#0ea5e9');
+  closeEditEmpModal();
 }
 function deleteEmployee(empId){
   if(!confirm('Delete this employee?')) return;
@@ -2135,5 +2151,83 @@ function initApp(){
     .catch(()=>{ render(); renderEsopSummary(); });
 }
 </script>
+
+<!-- EDIT EMPLOYEE MODAL -->
+<div id="editEmpModal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px">
+  <div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <h3 style="margin:0;color:#1e3a5f;font-size:18px">&#9998; Edit Employee</h3>
+        <div style="font-size:12px;color:#64748b;margin-top:2px">ID: <strong id="em-empId"></strong></div>
+      </div>
+      <button onclick="closeEditEmpModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#64748b">&#10005;</button>
+    </div>
+    <input type="hidden" id="em-id"/>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">FULL NAME</label>
+        <input id="em-name" type="text" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">DEPARTMENT</label>
+        <input id="em-dept" type="text" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">DESIGNATION</label>
+        <input id="em-desig" type="text" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">STATUS</label>
+        <select id="em-status" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px">
+          <option value="Active">Active</option>
+          <option value="Serving Notice">Serving Notice</option>
+          <option value="Yet to Join">Yet to Join</option>
+          <option value="RR">RR</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">MONTHLY CTC (&#8377;)</label>
+        <input id="em-salary" type="number" min="0" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">DATE OF JOINING</label>
+        <input id="em-doj" type="date" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">GENDER</label>
+        <select id="em-gender" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px">
+          <option value="">Select</option><option>Male</option><option>Female</option><option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">EMPLOYEE TYPE</label>
+        <select id="em-type" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px">
+          <option value="">Select</option><option>Full-Time</option><option>Part-Time</option><option>Contractor</option><option>Intern</option><option>Consultant</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">MANAGER</label>
+        <input id="em-manager" type="text" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">LOCATION</label>
+        <input id="em-location" type="text" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">MOBILE</label>
+        <input id="em-mobile" type="tel" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#64748b">EMAIL</label>
+        <input id="em-email" type="email" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button onclick="saveEditEmpModal()" style="flex:1;background:linear-gradient(135deg,#1e3a5f,#0ea5e9);color:#fff;padding:13px;border-radius:10px;font-weight:800;font-size:14px;border:none;cursor:pointer">&#10003; Save Changes</button>
+      <button onclick="closeEditEmpModal()" style="flex:1;background:none;border:1.5px solid #dde3ea;border-radius:10px;padding:13px;color:#64748b;font-size:13px;cursor:pointer">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
