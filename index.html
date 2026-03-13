@@ -1244,8 +1244,8 @@ function renderEmpTable(){
       <td class="salary-col" style="font-weight:600">${fmt(e.salary||0)}</td>
       <td>${e.doj||'-'}</td><td>${e.mobile||'-'}</td><td>${e.email||'-'}</td>
       <td><div class="actions">
-        <button class="btn btn-blue btn-sm" onclick="editEmployee('${e.id}')">Edit</button>
-        <button class="btn btn-red  btn-sm" onclick="deleteEmployee('${e.id}')">Del</button>
+        <button class="btn btn-blue btn-sm edit-emp-btn" data-empid="${e.id}">Edit</button>
+        <button class="btn btn-red  btn-sm del-emp-btn"  data-empid="${e.id}">Del</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -2150,10 +2150,18 @@ function initApp(){
     })
     .catch(()=>{ render(); renderEsopSummary(); });
 }
+
+// Event delegation for edit/delete buttons (avoids issues with special chars in IDs)
+document.addEventListener('click', function(ev){
+  const editBtn = ev.target.closest('.edit-emp-btn');
+  const delBtn  = ev.target.closest('.del-emp-btn');
+  if(editBtn){ editEmployee(editBtn.dataset.empid); }
+  if(delBtn) { deleteEmployee(delBtn.dataset.empid); }
+});
 </script>
 
 <!-- EDIT EMPLOYEE MODAL -->
-<div id="editEmpModal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px">
+<div id="editEmpModal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:99999;padding:16px">
   <div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
       <div>
