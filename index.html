@@ -383,6 +383,12 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       <div class="sub" id="s-consultant-pct">0% of total</div>
       <div class="cost-tag" id="s-consultant-cost">&#8377;0 / month</div>
     </div>
+    <div class="kpi" style="border-top:4px solid #ef4444">
+      <div class="icon">&#128683;</div>
+      <div class="lbl">Exited</div>
+      <div class="val" id="s-exited">0</div>
+      <div class="sub" id="s-exited-pct">0% of total</div>
+    </div>
   </div>
 
   <!-- ── KPI ROW 2 ── -->
@@ -512,7 +518,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
             <select id="f-gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select>
           </div>
           <div class="form-group"><label>Employee Type</label>
-            <select id="f-type"><option value="">Select</option><option>Full-Time</option><option>Part-Time</option><option>Contractor</option><option>Intern</option><option>Consultant</option></select>
+            <select id="f-type"><option value="">Select</option><option>Full-Time</option><option>Part-Time</option><option>Contractor</option><option>Intern</option><option>Consultant</option><option>Exited</option></select>
           </div>
         </div>
         <div class="form-sec">Job Details</div>
@@ -582,7 +588,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
         <option value="">All Statuses</option><option>Active</option><option>Serving Notice</option><option>Yet to Join</option><option>RR</option>
       </select>
       <select id="flt-type"     onchange="renderEmpTable()">
-        <option value="">All Types</option><option>Full-Time</option><option>Part-Time</option><option>Contractor</option><option>Intern</option><option>Consultant</option>
+        <option value="">All Types</option><option>Full-Time</option><option>Part-Time</option><option>Contractor</option><option>Intern</option><option>Consultant</option><option>Exited</option>
       </select>
       <select id="flt-location" onchange="renderEmpTable()"><option value="">All Locations</option></select>
       <button class="btn btn-gray btn-sm" onclick="clearFilters()">Clear Filters</button>
@@ -1193,15 +1199,18 @@ function renderKPIs(){
   const fullTimeE   = employees.filter(e=>e.type==='Full Time');
   const fixedTermE  = employees.filter(e=>e.type==='Fixed Term Employee');
   const consultantE = employees.filter(e=>e.type==='Consultant');
+  const exitedE     = employees.filter(e=>e.type==='Exited');
   document.getElementById('s-fulltime').textContent      = fullTimeE.length;
   document.getElementById('s-fixedterm').textContent     = fixedTermE.length;
   document.getElementById('s-consultant').textContent    = consultantE.length;
+  document.getElementById('s-exited').textContent        = exitedE.length;
   document.getElementById('s-fulltime-pct').textContent  = pct(fullTimeE.length,total)+' of total';
   document.getElementById('s-fulltime-cost').textContent  = '₹'+fmt(fullTimeE.reduce((s,e)=>s+(e.salary||0),0))+' / month';
   document.getElementById('s-fixedterm-cost').textContent = '₹'+fmt(fixedTermE.reduce((s,e)=>s+(e.salary||0),0))+' / month';
   document.getElementById('s-consultant-cost').textContent= '₹'+fmt(consultantE.reduce((s,e)=>s+(e.salary||0),0))+' / month';
   document.getElementById('s-fixedterm-pct').textContent = pct(fixedTermE.length,total)+' of total';
   document.getElementById('s-consultant-pct').textContent= pct(consultantE.length,total)+' of total';
+  document.getElementById('s-exited-pct').textContent    = pct(exitedE.length,total)+' of total';
   document.getElementById('s-attrition').textContent   = pct(noticeE.length,total);
   document.getElementById('s-avgctc').textContent      = fmt(avgCtc);
   document.getElementById('s-female-pct').textContent  = pct(femaleCount,total);
@@ -2309,7 +2318,7 @@ function renderRRTab(){
       <div>
         <label style="font-size:11px;font-weight:700;color:#64748b">EMPLOYEE TYPE</label>
         <select id="em-type" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px">
-          <option value="">Select</option><option>Full-Time</option><option>Part-Time</option><option>Contractor</option><option>Intern</option><option>Consultant</option>
+          <option value="">Select</option><option>Full-Time</option><option>Part-Time</option><option>Contractor</option><option>Intern</option><option>Consultant</option><option>Exited</option>
         </select>
       </div>
       <div>
