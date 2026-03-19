@@ -357,6 +357,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       <div class="lbl">Exited</div>
       <div class="val" id="s-exited">0</div>
       <div class="sub">Left the organization</div>
+      <div class="cost-tag" id="s-exited-cost">&#8377;0 / month</div>
     </div>
     <div class="kpi kpi-cost">
       <div class="icon">&#128184;</div>
@@ -1197,6 +1198,7 @@ function renderKPIs(){
   document.getElementById('s-rr-pct').textContent       = pct(rrE.length,total);
   document.getElementById('s-exited').textContent       = exitedE.length;
   document.getElementById('s-exited-pct').textContent   = pct(exitedE.length,total);
+  document.getElementById('s-exited-cost').textContent  = fmt(exitedE.reduce((s,e)=>s+(e.salary||0),0))+' / month';
   document.getElementById('s-active-cost').textContent  = fmt(activeCost)+' / month';
   document.getElementById('s-notice-cost').textContent  = fmt(noticeCost)+' / month';
   document.getElementById('s-joining-cost').textContent = fmt(joiningCost)+' / month';
