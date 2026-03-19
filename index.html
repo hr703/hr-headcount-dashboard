@@ -471,6 +471,13 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
         <div class="cc-count" id="cc-joining-count">0 employees</div>
         <div class="cc-annual" id="cc-joining-annual">&#8377;0 / year</div>
       </div>
+      <div class="cost-card" style="--cc-color:#ef4444;--cc-bg:#fee2e2">
+        <div class="cc-icon" style="background:#fee2e2">&#128683;</div>
+        <div class="cc-lbl">Exited Cost</div>
+        <div class="cc-val" id="cc-exited-cost">&#8377;0</div>
+        <div class="cc-count" id="cc-exited-count">0 employees</div>
+        <div class="cc-annual" id="cc-exited-annual">&#8377;0 / year</div>
+      </div>
     </div>
 
     <div class="cost-dept-grid">
@@ -1627,10 +1634,12 @@ function renderCostTab(){
   const activeE  = employees.filter(e=>e.status==='Active');
   const noticeE  = employees.filter(e=>e.status==='Serving Notice');
   const joiningE = employees.filter(e=>e.status==='Yet to Join');
+  const exitedE  = employees.filter(e=>e.status==='Exited');
   const activeCost  = activeE.reduce((s,e)=>s+(e.salary||0),0);
   const noticeCost  = noticeE.reduce((s,e)=>s+(e.salary||0),0);
   const joiningCost = joiningE.reduce((s,e)=>s+(e.salary||0),0);
-  const totalCost   = activeCost+noticeCost+joiningCost;
+  const exitedCost  = exitedE.reduce((s,e)=>s+(e.salary||0),0);
+  const totalCost   = activeCost+noticeCost+joiningCost+exitedCost;
 
   // Cards
   document.getElementById('cc-active-cost').textContent   = fmt(activeCost);
@@ -1641,6 +1650,9 @@ function renderCostTab(){
   document.getElementById('cc-notice-annual').textContent = fmt(noticeCost*12)+' / year';
   document.getElementById('cc-joining-cost').textContent  = fmt(joiningCost);
   document.getElementById('cc-joining-count').textContent = joiningE.length+' employees ('+pct(joiningCost,totalCost)+' of cost)';
+  document.getElementById('cc-exited-cost').textContent   = fmt(exitedCost);
+  document.getElementById('cc-exited-count').textContent  = exitedE.length+' employees ('+pct(exitedCost,totalCost)+' of cost)';
+  document.getElementById('cc-exited-annual').textContent = fmt(exitedCost*12)+' / year';
   document.getElementById('cc-joining-annual').textContent= fmt(joiningCost*12)+' / year';
 
   // Dept cost table
