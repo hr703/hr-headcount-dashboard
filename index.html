@@ -2163,14 +2163,14 @@ function editEsopPoolRow(i, calcVal) {
   if (isNaN(parsed)) { alert('Invalid number'); return; }
   current['row_' + i] = parsed;
   localStorage.setItem('esop_pool_overrides', JSON.stringify(current));
-  renderEsopTab();
+  renderEsopSummary();
 }
 
 function resetEsopPoolRow(i) {
   const current = JSON.parse(localStorage.getItem('esop_pool_overrides') || '{}');
   delete current['row_' + i];
   localStorage.setItem('esop_pool_overrides', JSON.stringify(current));
-  renderEsopTab();
+  renderEsopSummary();
 }
 
 function renderEsopTable(){
