@@ -756,7 +756,6 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
             <tr>
               <th style="background:#f8fafc;color:var(--primary);font-weight:700;padding:10px 16px;border-bottom:2px solid var(--border);text-align:left;width:40%">Category</th>
               <th style="background:#f8fafc;color:var(--primary);font-weight:700;padding:10px 16px;border-bottom:2px solid var(--border);text-align:right">Shares</th>
-              <th style="background:#f8fafc;color:var(--primary);font-weight:700;padding:10px 16px;border-bottom:2px solid var(--border);text-align:right">% of Pool</th>
               <th style="background:#f8fafc;color:var(--primary);font-weight:700;padding:10px 16px;border-bottom:2px solid var(--border);text-align:right">Value (&#8377;)</th>
               <th style="background:#f8fafc;color:var(--primary);font-weight:700;padding:10px 16px;border-bottom:2px solid var(--border);text-align:left">Description</th>
             </tr>
@@ -2147,9 +2146,6 @@ function renderEsopSummary(){
           onfocus="this.style.borderColor='${rowColors[i]}'"
         />
         ${isOverridden ? `<button onclick="resetEsopPoolRow(${i})" style="background:transparent;border:none;cursor:pointer;font-size:13px;color:#ef4444;margin-left:4px;" title="Reset to calculated">↩</button>` : ''}
-      </td>
-      <td style="padding:10px 14px;text-align:center">
-        <span style="background:${rowColors[i]}22;color:${rowColors[i]};padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700" id="esop-pct-${i}">${pct(displayShares, r.pctOf)}</span>
       </td>
       <td style="padding:10px 14px;text-align:right;font-size:13px;color:#475569;font-weight:600" id="esop-val-${i}">${val(displayShares)}</td>
       <td style="padding:10px 14px;font-size:12px;color:#64748b">${r.desc}</td>
