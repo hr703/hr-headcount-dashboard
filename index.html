@@ -471,6 +471,13 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
         <div class="cc-count" id="cc-joining-count">0 employees</div>
         <div class="cc-annual" id="cc-joining-annual">&#8377;0 / year</div>
       </div>
+      <div class="cost-card cost-card-rr">
+        <div class="cc-icon" style="background:var(--cc-bg)">&#128683;</div>
+        <div class="cc-lbl">Role Transition Cost</div>
+        <div class="cc-val" id="cc-rr-cost">&#8377;0</div>
+        <div class="cc-count" id="cc-rr-count">0 employees</div>
+        <div class="cc-annual" id="cc-rr-annual">&#8377;0 / year</div>
+      </div>
       <div class="cost-card" style="--cc-color:#ef4444;--cc-bg:#fee2e2">
         <div class="cc-icon" style="background:#fee2e2">&#128683;</div>
         <div class="cc-lbl">Exited Cost</div>
@@ -1635,11 +1642,13 @@ function renderCostTab(){
   const noticeE  = employees.filter(e=>e.status==='Serving Notice');
   const joiningE = employees.filter(e=>e.status==='Yet to Join');
   const exitedE  = employees.filter(e=>e.status==='Exited');
+  const rrE      = employees.filter(e=>e.status==='RR');
   const activeCost  = activeE.reduce((s,e)=>s+(e.salary||0),0);
   const noticeCost  = noticeE.reduce((s,e)=>s+(e.salary||0),0);
   const joiningCost = joiningE.reduce((s,e)=>s+(e.salary||0),0);
   const exitedCost  = exitedE.reduce((s,e)=>s+(e.salary||0),0);
-  const totalCost   = activeCost+noticeCost+joiningCost+exitedCost;
+  const rrCost      = rrE.reduce((s,e)=>s+(e.salary||0),0);
+  const totalCost   = activeCost+noticeCost+joiningCost+exitedCost+rrCost;
 
   // Cards
   document.getElementById('cc-active-cost').textContent   = fmt(activeCost);
@@ -1650,6 +1659,9 @@ function renderCostTab(){
   document.getElementById('cc-notice-annual').textContent = fmt(noticeCost*12)+' / year';
   document.getElementById('cc-joining-cost').textContent  = fmt(joiningCost);
   document.getElementById('cc-joining-count').textContent = joiningE.length+' employees ('+pct(joiningCost,totalCost)+' of cost)';
+  document.getElementById('cc-rr-cost').textContent       = fmt(rrCost);
+  document.getElementById('cc-rr-count').textContent      = rrE.length+' employees ('+pct(rrCost,totalCost)+' of cost)';
+  document.getElementById('cc-rr-annual').textContent     = fmt(rrCost*12)+' / year';
   document.getElementById('cc-exited-cost').textContent   = fmt(exitedCost);
   document.getElementById('cc-exited-count').textContent  = exitedE.length+' employees ('+pct(exitedCost,totalCost)+' of cost)';
   document.getElementById('cc-exited-annual').textContent = fmt(exitedCost*12)+' / year';
@@ -1701,7 +1713,7 @@ function renderCostTab(){
   dc(chartCostStatus2);
   chartCostStatus2=new Chart(document.getElementById('chartCostStatus2'),{
     type:'doughnut',
-    data:{labels:['Active','Serving Notice','Yet to Join','Role Transition'],datasets:[{data:[activeCost,noticeCost,joiningCost,rrCostChart],backgroundColor:['#10b981','#f59e0b','#8b5cf6','#ef4444'],borderWidth:0,hoverOffset:8}]},
+    data:{labels:['Active','Serving Notice','Yet to Join','Role Transition','Exited'],datasets:[{data:[activeCost,noticeCost,joiningCost,rrCost,exitedCost],backgroundColor:['#10b981','#f59e0b','#8b5cf6','#f97316','#ef4444'],borderWidth:0,hoverOffset:8}]},
     options:{cutout:'60%',animation:{duration:700},plugins:{
       legend:{position:'bottom',labels:{font:{size:11},padding:10,usePointStyle:true}},
       tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+fmt(ctx.raw)}},
