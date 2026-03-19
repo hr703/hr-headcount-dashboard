@@ -759,7 +759,6 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
               <th style="background:#f8fafc;color:var(--primary);font-weight:700;padding:10px 16px;border-bottom:2px solid var(--border);text-align:right">% of Pool</th>
               <th style="background:#f8fafc;color:var(--primary);font-weight:700;padding:10px 16px;border-bottom:2px solid var(--border);text-align:right">Value (&#8377;)</th>
               <th style="background:#f8fafc;color:var(--primary);font-weight:700;padding:10px 16px;border-bottom:2px solid var(--border);text-align:left">Description</th>
-              <th style="background:#f8fafc;color:var(--primary);font-weight:700;padding:10px 16px;border-bottom:2px solid var(--border);text-align:center">Edit</th>
             </tr>
           </thead>
           <tbody id="esopSummaryBody"></tbody>
@@ -2140,30 +2139,31 @@ function renderEsopSummary(){
       <td style="padding:10px 14px;font-weight:${i===0||i===7?'700':'600'};color:${rowColors[i]}">
         <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${rowColors[i]};margin-right:8px;vertical-align:middle"></span>${r.cat}${overrideBadge}
       </td>
-      <td style="padding:10px 14px;text-align:right;font-weight:700;font-size:14px;color:${rowColors[i]}" id="esop-shares-${i}">${num(displayShares)}</td>
-      <td style="padding:10px 14px;text-align:center">
-        <span style="background:${rowColors[i]}22;color:${rowColors[i]};padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">${pct(displayShares, r.pctOf)}</span>
+      <td style="padding:6px 14px;text-align:right;font-weight:700;font-size:14px;color:${rowColors[i]}">
+        <input type="number" id="esop-input-${i}"
+          value="${displayShares}"
+          onchange="saveEsopPoolRow(${i}, this.value)"
+          style="width:110px;text-align:right;padding:5px 8px;border:1.5px solid ${rowColors[i]}44;border-radius:6px;font-size:13px;font-weight:700;color:${rowColors[i]};background:${rowColors[i]}08;outline:none;"
+          onfocus="this.style.borderColor='${rowColors[i]}'"
+        />
+        ${isOverridden ? `<button onclick="resetEsopPoolRow(${i})" style="background:transparent;border:none;cursor:pointer;font-size:13px;color:#ef4444;margin-left:4px;" title="Reset to calculated">↩</button>` : ''}
       </td>
-      <td style="padding:10px 14px;text-align:right;font-size:13px;color:#475569;font-weight:600">${val(displayShares)}</td>
+      <td style="padding:10px 14px;text-align:center">
+        <span style="background:${rowColors[i]}22;color:${rowColors[i]};padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700" id="esop-pct-${i}">${pct(displayShares, r.pctOf)}</span>
+      </td>
+      <td style="padding:10px 14px;text-align:right;font-size:13px;color:#475569;font-weight:600" id="esop-val-${i}">${val(displayShares)}</td>
       <td style="padding:10px 14px;font-size:12px;color:#64748b">${r.desc}</td>
-      <td style="padding:10px 14px;text-align:center">
-        <button onclick="editEsopPoolRow(${i}, ${r.shares})" style="background:transparent;border:1px solid #cbd5e1;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:12px;color:#475569;" title="Edit">✏️</button>
-        ${isOverridden ? `<button onclick="resetEsopPoolRow(${i})" style="background:transparent;border:1px solid #fca5a5;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:12px;color:#ef4444;margin-left:4px;" title="Reset">↩</button>` : ''}
-      </td>
+      <td></td>
     </tr>`;
   }).join('');
 }
 
-function editEsopPoolRow(i, calcVal) {
+function saveEsopPoolRow(i, newVal) {
+  const parsed = parseInt(newVal);
+  if (isNaN(parsed)) return;
   const current = JSON.parse(localStorage.getItem('esop_pool_overrides') || '{}');
-  const currentVal = current['row_' + i] !== undefined ? current['row_' + i] : calcVal;
-  const newVal = prompt('Enter new value for this row (calculated: ' + calcVal.toLocaleString('en-IN') + '):', currentVal);
-  if (newVal === null) return;
-  const parsed = parseInt(newVal.replace(/,/g, ''));
-  if (isNaN(parsed)) { alert('Invalid number'); return; }
   current['row_' + i] = parsed;
   localStorage.setItem('esop_pool_overrides', JSON.stringify(current));
-  renderEsopSummary();
 }
 
 function resetEsopPoolRow(i) {
