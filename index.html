@@ -1059,17 +1059,19 @@ function editEmployeeByIdx(idx){
   document.getElementById('em-location').value    = e.location||'';
   document.getElementById('em-mobile').value      = e.mobile||'';
   document.getElementById('em-email').value       = e.email||'';
-  document.getElementById('em-exit-date').value   = e.exitDate||'';
-  document.getElementById('em-exit-reason').value = e.exitReason||'';
+  document.getElementById('em-resign-date').value  = e.resignDate||'';
+  document.getElementById('em-exit-date').value    = e.exitDate||'';
+  document.getElementById('em-exit-reason').value  = e.exitReason||'';
   updateExitSubReason();
   if(e.exitSubReason) document.getElementById('em-exit-subreason').value = e.exitSubReason||'';
   toggleExitFields();
   document.getElementById('editEmpModal').style.display='flex';
 }
 function toggleExitFields(){
-  const isExited = document.getElementById('em-status').value === 'Exited';
-  document.getElementById('exit-fields').style.display = isExited ? 'block' : 'none';
-  if(isExited) updateExitSubReason();
+  const s = document.getElementById('em-status').value;
+  const show = s === 'Exited' || s === 'Serving Notice';
+  document.getElementById('exit-fields').style.display = show ? 'block' : 'none';
+  if(show) updateExitSubReason();
 }
 const EXIT_SUB_REASONS = {
   'Resignation':      ['Better Opportunity','Higher Salary','Personal Reasons','Relocation','Higher Education','Health Issues','Work-Life Balance','Career Change','Family Reasons','Other'],
@@ -1111,6 +1113,7 @@ function saveEditEmpModal(){
   employees[idx].location = document.getElementById('em-location').value.trim();
   employees[idx].mobile   = document.getElementById('em-mobile').value.trim();
   employees[idx].email    = document.getElementById('em-email').value.trim();
+  employees[idx].resignDate    = document.getElementById('em-resign-date').value;
   employees[idx].exitDate      = document.getElementById('em-exit-date').value;
   employees[idx].exitReason    = document.getElementById('em-exit-reason').value;
   employees[idx].exitSubReason = document.getElementById('em-exit-subreason').value;
@@ -2434,15 +2437,19 @@ function renderRRTab(){
           <option value="RR">RR</option>
         </select>
       </div>
-      <div id="exit-fields" style="display:none;grid-column:1/-1;background:#fff5f5;border:1.5px solid #fca5a5;border-radius:10px;padding:14px;gap:12px;display:none">
-        <div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:8px">Exit Details</div>
+      <div id="exit-fields" style="display:none;grid-column:1/-1;background:#fff5f5;border:1.5px solid #fca5a5;border-radius:10px;padding:14px">
+        <div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:10px">&#128197; Separation Details</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div>
-            <label style="font-size:11px;font-weight:700;color:#64748b">EXIT DATE</label>
+            <label style="font-size:11px;font-weight:700;color:#64748b">DATE OF RESIGNATION</label>
+            <input id="em-resign-date" type="date" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:#64748b">LAST WORKING DATE</label>
             <input id="em-exit-date" type="date" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
           </div>
           <div>
-            <label style="font-size:11px;font-weight:700;color:#64748b">EXIT REASON</label>
+            <label style="font-size:11px;font-weight:700;color:#64748b">REASON OF LEAVING</label>
             <select id="em-exit-reason" onchange="updateExitSubReason()" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px">
               <option value="">-- Select Reason --</option>
               <option>Resignation</option>
@@ -2454,7 +2461,7 @@ function renderRRTab(){
             </select>
           </div>
           <div id="exit-subreason-wrap" style="display:none">
-            <label style="font-size:11px;font-weight:700;color:#64748b">SUB REASON</label>
+            <label style="font-size:11px;font-weight:700;color:#64748b">SUB REASON OF LEAVING</label>
             <select id="em-exit-subreason" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px">
               <option value="">-- Select Sub Reason --</option>
             </select>
