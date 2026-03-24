@@ -1192,15 +1192,13 @@ function getFiltered(){
     return(!q||txt.includes(q))&&(!dept||e.dept===dept)&&(!stat||e.status===stat)&&(!type||e.type===type)&&(!loc||e.location===loc)&&dojOk;
   });
 }
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtMonth(m){ const [y,mo]=m.split('-'); return (MON[parseInt(mo,10)-1]||mo)+' '+y; }
 function populateMonthFilter(){
-  const months=[...new Set(employees.map(e=>e.doj?e.doj.substring(0,7):null).filter(Boolean))].sort();
+  const months=[...new Set(employees.map(e=>e.doj&&/^\d{4}-\d{2}/.test(e.doj)?e.doj.substring(0,7):null).filter(Boolean))].sort();
   const sel=document.getElementById('flt-month');
   const cur=sel.value;
-  sel.innerHTML='<option value="">As of Month</option>'+months.map(m=>{
-    const [y,mo]=m.split('-');
-    const label=new Date(y,mo-1).toLocaleString('en-IN',{month:'short',year:'numeric'});
-    return `<option value="${m}"${cur===m?' selected':''}>${label}</option>`;
-  }).join('');
+  sel.innerHTML='<option value="">As of Month</option>'+months.map(m=>`<option value="${m}"${cur===m?' selected':''}>${fmtMonth(m)}</option>`).join('');
 }
 
 // ================================================================
@@ -1238,14 +1236,10 @@ function fmt(n){ return '\u20B9'+Math.round(n).toLocaleString('en-IN'); }
 function pct(v,t){ return t>0?((v/t)*100).toFixed(1)+'%':'0%'; }
 
 function populateOvMonthFilter(){
-  const months=[...new Set(employees.map(e=>e.doj?e.doj.substring(0,7):null).filter(Boolean))].sort();
+  const months=[...new Set(employees.map(e=>e.doj&&/^\d{4}-\d{2}/.test(e.doj)?e.doj.substring(0,7):null).filter(Boolean))].sort();
   const sel=document.getElementById('ov-month');
   const cur=sel.value;
-  sel.innerHTML='<option value="">All Time</option>'+months.map(m=>{
-    const [y,mo]=m.split('-');
-    const label=new Date(y,mo-1).toLocaleString('en-IN',{month:'short',year:'numeric'});
-    return `<option value="${m}"${cur===m?' selected':''}>${label}</option>`;
-  }).join('');
+  sel.innerHTML='<option value="">All Time</option>'+months.map(m=>`<option value="${m}"${cur===m?' selected':''}>${fmtMonth(m)}</option>`).join('');
 }
 function renderKPIs(){
   const ovMonth=document.getElementById('ov-month')?document.getElementById('ov-month').value:'';
