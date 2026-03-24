@@ -165,6 +165,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
 #empTable tbody td{padding:8px 10px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
 #empTable tbody tr:hover{background:#f8fafc}
 #empTable tbody tr.selected-row{background:#fef9c3}
+#empTable tfoot td{border-top:2px solid var(--border)}
 .tbl-wrap{overflow-x:auto}
 
 /* Avatar */
@@ -308,6 +309,15 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
 
   <!-- ════════════════ TAB: OVERVIEW ════════════════ -->
   <div class="tab-content active" id="tab-overview">
+
+  <!-- ── OVERVIEW MONTH FILTER ── -->
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 0 4px 0;flex-wrap:wrap">
+    <label style="font-size:13px;font-weight:600;color:var(--primary)">&#128197; As of Month:</label>
+    <select id="ov-month" onchange="renderKPIs()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;background:#fff;min-width:160px">
+      <option value="">All Time</option>
+    </select>
+    <span id="ov-month-label" style="font-size:12px;color:var(--muted)"></span>
+  </div>
 
   <!-- ── KPI ROW 1 ── -->
   <div class="sec-title">Workforce Overview</div>
@@ -607,6 +617,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
         <option value="">All Types</option><option>Full-Time</option><option>Part-Time</option><option>Contractor</option><option>Intern</option><option>Consultant</option><option>Exited</option>
       </select>
       <select id="flt-location" onchange="renderEmpTable()"><option value="">All Locations</option></select>
+      <select id="flt-month"    onchange="renderEmpTable()"><option value="">As of Month</option></select>
       <button class="btn btn-gray btn-sm" onclick="clearFilters()">Clear Filters</button>
       <span id="filteredCount" style="font-size:11px;color:var(--muted);margin-left:auto"></span>
     </div>
@@ -623,6 +634,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
           </tr>
         </thead>
         <tbody id="empBody"><tr><td colspan="15" class="empty-msg">No employees added yet.</td></tr></tbody>
+        <tfoot id="empTableFoot"></tfoot>
       </table>
     </div>
   </div>
@@ -1047,7 +1059,38 @@ function editEmployeeByIdx(idx){
   document.getElementById('em-location').value    = e.location||'';
   document.getElementById('em-mobile').value      = e.mobile||'';
   document.getElementById('em-email').value       = e.email||'';
+  document.getElementById('em-exit-date').value   = e.exitDate||'';
+  document.getElementById('em-exit-reason').value = e.exitReason||'';
+  updateExitSubReason();
+  if(e.exitSubReason) document.getElementById('em-exit-subreason').value = e.exitSubReason||'';
+  toggleExitFields();
   document.getElementById('editEmpModal').style.display='flex';
+}
+function toggleExitFields(){
+  const isExited = document.getElementById('em-status').value === 'Exited';
+  document.getElementById('exit-fields').style.display = isExited ? 'block' : 'none';
+  if(isExited) updateExitSubReason();
+}
+const EXIT_SUB_REASONS = {
+  'Resignation':      ['Better Opportunity','Higher Salary','Personal Reasons','Relocation','Higher Education','Health Issues','Work-Life Balance','Career Change','Family Reasons','Other'],
+  'Termination':      ['Poor Performance','Misconduct','Policy Violation','Redundancy / Restructuring','Background Verification Failed','Other'],
+  'End of Contract':  ['Contract Expired','Project Completed','Budget Constraint','Not Extended','Mutual Agreement','Other'],
+  'Retirement':       ['Superannuation','Voluntary Retirement (VRS)','Other'],
+  'Absconding':       ['No Notice Given','Unreachable','Abandoned Role','Other'],
+  'Other':            ['Medical / Disability','Death','Visa / Immigration Issue','Other']
+};
+function updateExitSubReason(){
+  const reason = document.getElementById('em-exit-reason').value;
+  const wrap   = document.getElementById('exit-subreason-wrap');
+  const sel    = document.getElementById('em-exit-subreason');
+  const subs   = EXIT_SUB_REASONS[reason];
+  if(subs){
+    sel.innerHTML = '<option value="">-- Select Sub Reason --</option>' + subs.map(s=>`<option>${s}</option>`).join('');
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+    sel.value = '';
+  }
 }
 function editEmployee(empId){
   const idx=employees.findIndex(x=>x.id===empId);
@@ -1068,6 +1111,9 @@ function saveEditEmpModal(){
   employees[idx].location = document.getElementById('em-location').value.trim();
   employees[idx].mobile   = document.getElementById('em-mobile').value.trim();
   employees[idx].email    = document.getElementById('em-email').value.trim();
+  employees[idx].exitDate      = document.getElementById('em-exit-date').value;
+  employees[idx].exitReason    = document.getElementById('em-exit-reason').value;
+  employees[idx].exitSubReason = document.getElementById('em-exit-subreason').value;
   save(); render();
   toast('Employee updated successfully','#0ea5e9');
   closeEditEmpModal();
@@ -1129,7 +1175,7 @@ function clearSelection(){ selectedIds.clear(); renderEmpTable(); }
 // FILTERS
 // ================================================================
 function clearFilters(){
-  ['searchBox','flt-dept','flt-status','flt-type','flt-location'].forEach(id=>document.getElementById(id).value='');
+  ['searchBox','flt-dept','flt-status','flt-type','flt-location','flt-month'].forEach(id=>document.getElementById(id).value='');
   renderEmpTable();
 }
 function getFiltered(){
@@ -1138,10 +1184,23 @@ function getFiltered(){
   const stat  =document.getElementById('flt-status').value;
   const type  =document.getElementById('flt-type').value;
   const loc   =document.getElementById('flt-location').value;
+  const month =document.getElementById('flt-month').value; // format: "YYYY-MM"
   return employees.filter(e=>{
     const txt=[e.id,e.name,e.dept,e.desig,e.manager,e.location,e.mobile,e.email].join(' ').toLowerCase();
-    return(!q||txt.includes(q))&&(!dept||e.dept===dept)&&(!stat||e.status===stat)&&(!type||e.type===type)&&(!loc||e.location===loc);
+    // "As of month" filter: include employees whose DOJ <= last day of selected month
+    const dojOk = !month || (e.doj && e.doj.substring(0,7) <= month);
+    return(!q||txt.includes(q))&&(!dept||e.dept===dept)&&(!stat||e.status===stat)&&(!type||e.type===type)&&(!loc||e.location===loc)&&dojOk;
   });
+}
+function populateMonthFilter(){
+  const months=[...new Set(employees.map(e=>e.doj?e.doj.substring(0,7):null).filter(Boolean))].sort();
+  const sel=document.getElementById('flt-month');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">As of Month</option>'+months.map(m=>{
+    const [y,mo]=m.split('-');
+    const label=new Date(y,mo-1).toLocaleString('en-IN',{month:'short',year:'numeric'});
+    return `<option value="${m}"${cur===m?' selected':''}>${label}</option>`;
+  }).join('');
 }
 
 // ================================================================
@@ -1154,6 +1213,8 @@ function render(){
   renderEmpTable();
   renderCharts();
   populateLocationFilter();
+  populateMonthFilter();
+  populateOvMonthFilter();
   populateRevEmpDropdown();
   populateEsopEmpDropdown();
   renderRevKPIs();
@@ -1176,22 +1237,36 @@ function renderRevKPIs(){
 function fmt(n){ return '\u20B9'+Math.round(n).toLocaleString('en-IN'); }
 function pct(v,t){ return t>0?((v/t)*100).toFixed(1)+'%':'0%'; }
 
+function populateOvMonthFilter(){
+  const months=[...new Set(employees.map(e=>e.doj?e.doj.substring(0,7):null).filter(Boolean))].sort();
+  const sel=document.getElementById('ov-month');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">All Time</option>'+months.map(m=>{
+    const [y,mo]=m.split('-');
+    const label=new Date(y,mo-1).toLocaleString('en-IN',{month:'short',year:'numeric'});
+    return `<option value="${m}"${cur===m?' selected':''}>${label}</option>`;
+  }).join('');
+}
 function renderKPIs(){
-  const total  = employees.length;
-  const activeE  = employees.filter(e=>e.status==='Active');
-  const noticeE  = employees.filter(e=>e.status==='Serving Notice');
-  const joiningE = employees.filter(e=>e.status==='Yet to Join');
-  const rrE      = employees.filter(e=>e.status==='RR');
-  const exitedE  = employees.filter(e=>e.status==='Exited');
-  const totalCost  = employees.reduce((s,e)=>s+(e.salary||0),0);
+  const ovMonth=document.getElementById('ov-month')?document.getElementById('ov-month').value:'';
+  const base = ovMonth ? employees.filter(e=>e.doj && e.doj.substring(0,7)<=ovMonth) : employees;
+  const lbl=document.getElementById('ov-month-label');
+  if(lbl) lbl.textContent=ovMonth?`Showing headcount as of end of selected month`:'';
+  const total  = base.length;
+  const activeE  = base.filter(e=>e.status==='Active');
+  const noticeE  = base.filter(e=>e.status==='Serving Notice');
+  const joiningE = base.filter(e=>e.status==='Yet to Join');
+  const rrE      = base.filter(e=>e.status==='RR');
+  const exitedE  = base.filter(e=>e.status==='Exited');
+  const totalCost  = base.reduce((s,e)=>s+(e.salary||0),0);
   const activeCost = activeE.reduce((s,e)=>s+(e.salary||0),0);
   const noticeCost = noticeE.reduce((s,e)=>s+(e.salary||0),0);
   const joiningCost= joiningE.reduce((s,e)=>s+(e.salary||0),0);
   const rrCost     = rrE.reduce((s,e)=>s+(e.salary||0),0);
-  const femaleCount= employees.filter(e=>e.gender==='Female').length;
-  const locs=[...new Set(employees.map(e=>e.location).filter(Boolean))];
+  const femaleCount= base.filter(e=>e.gender==='Female').length;
+  const locs=[...new Set(base.map(e=>e.location).filter(Boolean))];
   const avgCtc = total>0 ? Math.round(totalCost/total) : 0;
-  const topLoc = locs.length>0 ? locs.reduce((a,l)=>{ const c=employees.filter(e=>e.location===l).length; const ac=employees.filter(e=>e.location===a).length; return c>ac?l:a; },locs[0]) : '-';
+  const topLoc = locs.length>0 ? locs.reduce((a,l)=>{ const c=base.filter(e=>e.location===l).length; const ac=base.filter(e=>e.location===a).length; return c>ac?l:a; },locs[0]) : '-';
 
   document.getElementById('s-total').textContent    = total;
   document.getElementById('s-active').textContent   = activeE.length;
@@ -1215,9 +1290,9 @@ function renderKPIs(){
   document.getElementById('s-active-cost').textContent  = fmt(activeCost)+' / month';
   document.getElementById('s-notice-cost').textContent  = fmt(noticeCost)+' / month';
   document.getElementById('s-joining-cost').textContent = fmt(joiningCost)+' / month';
-  const fullTimeE   = employees.filter(e=>e.type==='Full Time');
-  const fixedTermE  = employees.filter(e=>e.type==='Fixed Term Employee');
-  const consultantE = employees.filter(e=>e.type==='Consultant');
+  const fullTimeE   = base.filter(e=>e.type==='Full Time');
+  const fixedTermE  = base.filter(e=>e.type==='Fixed Term Employee');
+  const consultantE = base.filter(e=>e.type==='Consultant');
   document.getElementById('s-fulltime').textContent      = fullTimeE.length;
   document.getElementById('s-fixedterm').textContent     = fixedTermE.length;
   document.getElementById('s-consultant').textContent    = consultantE.length;
@@ -1305,7 +1380,7 @@ function renderEmpTable(){
   document.getElementById('selectAll').checked=filtered.length>0&&filtered.every(e=>selectedIds.has(e.id));
   updateBulkBar();
   const tbody=document.getElementById('empBody');
-  if(!filtered.length){ tbody.innerHTML=`<tr><td colspan="15" class="empty-msg">No matching employees found.</td></tr>`; return; }
+  if(!filtered.length){ tbody.innerHTML=`<tr><td colspan="15" class="empty-msg">No matching employees found.</td></tr>`; document.getElementById('empTableFoot').innerHTML=''; return; }
   const badge={'Active':'<span class="badge b-active">Active</span>','Serving Notice':'<span class="badge b-notice">Serving Notice</span>','Yet to Join':'<span class="badge b-joining">Yet to Join</span>','RR':'<span class="badge b-rr">Role Transition</span>','Exited':'<span class="badge" style="background:#fee2e2;color:#991b1b;">Exited</span>'};
   const colors=['#1e3a5f','#10b981','#f59e0b','#8b5cf6','#0ea5e9','#ef4444','#ec4899','#14b8a6','#f97316','#6366f1'];
   tbody.innerHTML=filtered.map((e,i)=>{
@@ -1326,6 +1401,13 @@ function renderEmpTable(){
       </div></td>
     </tr>`;
   }).join('');
+  const totalCost=filtered.reduce((s,e)=>s+(e.salary||0),0);
+  const annualCost=totalCost*12;
+  document.getElementById('empTableFoot').innerHTML=`<tr style="background:#f1f5f9;font-weight:800;font-size:12px;color:var(--primary)">
+    <td colspan="10" style="padding:9px 12px;text-align:right">Total (${filtered.length} employees):</td>
+    <td class="salary-col" style="padding:9px 12px;color:var(--green)">${fmt(totalCost)}/mo &nbsp;|&nbsp; ${fmt(annualCost)}/yr</td>
+    <td colspan="4"></td>
+  </tr>`;
 }
 
 function populateLocationFilter(){
@@ -2350,13 +2432,40 @@ function renderRRTab(){
       </div>
       <div>
         <label style="font-size:11px;font-weight:700;color:#64748b">STATUS</label>
-        <select id="em-status" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px">
+        <select id="em-status" onchange="toggleExitFields()" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px">
           <option value="Active">Active</option>
           <option value="Serving Notice">Serving Notice</option>
           <option value="Yet to Join">Yet to Join</option>
           <option value="Exited">Exited</option>
           <option value="RR">RR</option>
         </select>
+      </div>
+      <div id="exit-fields" style="display:none;grid-column:1/-1;background:#fff5f5;border:1.5px solid #fca5a5;border-radius:10px;padding:14px;gap:12px;display:none">
+        <div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:8px">Exit Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label style="font-size:11px;font-weight:700;color:#64748b">EXIT DATE</label>
+            <input id="em-exit-date" type="date" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:#64748b">EXIT REASON</label>
+            <select id="em-exit-reason" onchange="updateExitSubReason()" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px">
+              <option value="">-- Select Reason --</option>
+              <option>Resignation</option>
+              <option>Termination</option>
+              <option>End of Contract</option>
+              <option>Retirement</option>
+              <option>Absconding</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div id="exit-subreason-wrap" style="display:none">
+            <label style="font-size:11px;font-weight:700;color:#64748b">SUB REASON</label>
+            <select id="em-exit-subreason" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px">
+              <option value="">-- Select Sub Reason --</option>
+            </select>
+          </div>
+        </div>
       </div>
       <div>
         <label style="font-size:11px;font-weight:700;color:#64748b">MONTHLY CTC (&#8377;)</label>
