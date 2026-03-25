@@ -1052,11 +1052,15 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
           <thead><tr>
             <th style="background:#f8fafc;padding:10px 14px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Employee Type</th>
             <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Opening</th>
+            <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Opening Cost</th>
             <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">+ Joiners</th>
+            <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Joiner Cost</th>
             <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">− Exits</th>
+            <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Exit Cost</th>
             <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Closing</th>
+            <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Closing Cost</th>
           </tr></thead>
-          <tbody id="mv-type-body"><tr><td colspan="5" class="empty-msg">Select a month</td></tr></tbody>
+          <tbody id="mv-type-body"><tr><td colspan="9" class="empty-msg">Select a month</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2666,16 +2670,24 @@ function renderMovementTab(){
   const empTypes = ['Full Time', 'Fixed Term Employee', 'Consultant'];
   const typeBody = document.getElementById('mv-type-body');
   typeBody.innerHTML = empTypes.map(t=>{
-    const tOpen    = opening.filter(e=>e.type===t).length;
-    const tJoiners = joiners.filter(e=>e.type===t).length;
-    const tExits   = exits.filter(e=>e.type===t).length;
-    const tClosing = tOpen + tJoiners - tExits;
+    const tOpen     = opening.filter(e=>e.type===t);
+    const tJoiners  = joiners.filter(e=>e.type===t);
+    const tExits    = exits.filter(e=>e.type===t);
+    const tOpenCost = tOpen.reduce((s,e)=>s+getSalaryAtMonth(e,month),0);
+    const tJoinCost = tJoiners.reduce((s,e)=>s+(e.salary||0),0);
+    const tExitCost = tExits.reduce((s,e)=>s+(e.salary||0),0);
+    const tClosing  = tOpen.length + tJoiners.length - tExits.length;
+    const tCloseCost= tOpenCost + tJoinCost - tExitCost;
     return `<tr style="border-bottom:1px solid #f1f5f9">
       <td style="padding:9px 14px;font-weight:600">${t}</td>
-      <td style="padding:9px 14px;text-align:center">${tOpen}</td>
-      <td style="padding:9px 14px;text-align:center;color:#10b981;font-weight:600">+${tJoiners}</td>
-      <td style="padding:9px 14px;text-align:center;color:#ef4444;font-weight:600">-${tExits}</td>
+      <td style="padding:9px 14px;text-align:center">${tOpen.length}</td>
+      <td style="padding:9px 14px;text-align:center;color:#1e3a5f;font-weight:600">${fmt(tOpenCost)}</td>
+      <td style="padding:9px 14px;text-align:center;color:#10b981;font-weight:600">+${tJoiners.length}</td>
+      <td style="padding:9px 14px;text-align:center;color:#10b981;font-weight:600">+${fmt(tJoinCost)}</td>
+      <td style="padding:9px 14px;text-align:center;color:#ef4444;font-weight:600">-${tExits.length}</td>
+      <td style="padding:9px 14px;text-align:center;color:#ef4444;font-weight:600">-${fmt(tExitCost)}</td>
       <td style="padding:9px 14px;text-align:center;font-weight:700;color:var(--primary)">${tClosing}</td>
+      <td style="padding:9px 14px;text-align:center;font-weight:700;color:var(--primary)">${fmt(tCloseCost)}</td>
     </tr>`;
   }).join('');
 
