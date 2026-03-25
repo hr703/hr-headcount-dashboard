@@ -2064,7 +2064,7 @@ function populateRevEmpDropdown(){
 
 function autoFillRevision(){
   const id = document.getElementById('rv-emp').value;
-  const e  = employees.find(x=>x.id===id);
+  const e  = employees.find(x=>String(x.id)===String(id));
   if(!e) return;
   document.getElementById('rv-code').value = e.empCode||e.id;
   document.getElementById('rv-dept').value = e.dept;
