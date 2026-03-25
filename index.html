@@ -1020,6 +1020,30 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       </div>
     </div>
 
+    <!-- Final Cost Row -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
+      <div class="kpi" style="--kpi-color:#10b981;--kpi-bg:#d1fae5;text-align:center">
+        <div class="lbl">Closing Cost</div>
+        <div class="val sm" id="mv-closing-cost2">&#8377;0</div>
+        <div class="sub">Opening + Joiners - Exits</div>
+      </div>
+      <div class="kpi" style="--kpi-color:#f59e0b;--kpi-bg:#fef3c7;text-align:center">
+        <div class="lbl">+ Salary Revision</div>
+        <div class="val sm" id="mv-rev-cost">&#8377;0</div>
+        <div class="sub">Incremental hike this month</div>
+      </div>
+      <div class="kpi" style="--kpi-color:#8b5cf6;--kpi-bg:#ede9fe;text-align:center">
+        <div class="lbl">− RR Cost</div>
+        <div class="val sm" id="mv-rr-cost">&#8377;0</div>
+        <div class="sub">Role Transition employees</div>
+      </div>
+      <div class="kpi" style="--kpi-color:#0ea5e9;--kpi-bg:#e0f2fe;text-align:center;border:2px solid #0ea5e9">
+        <div class="lbl" style="font-weight:800">Final Net Cost</div>
+        <div class="val sm" id="mv-final-cost">&#8377;0</div>
+        <div class="sub">Active workforce cost</div>
+      </div>
+    </div>
+
     <!-- New Joiners & Exits Tables side by side -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card">
@@ -2599,6 +2623,15 @@ function renderMovementTab(){
   const exitCost    = exits.reduce((s,e)=>s+(e.salary||0),0);
   const closingCost = openingCost + joinerCost - exitCost;
 
+  // Salary revision incremental cost for this month
+  const revIncrement = revisions.filter(r=>r.date&&r.date.substring(0,7)===month)
+    .reduce((s,r)=>s+((r.newCtc||0)-(r.oldCtc||0)),0);
+
+  // RR employees cost
+  const rrCostMv = employees.filter(e=>e.status==='RR').reduce((s,e)=>s+(e.salary||0),0);
+
+  const finalCost = closingCost + revIncrement - rrCostMv;
+
   document.getElementById('mv-opening').textContent      = opening.length;
   document.getElementById('mv-joiners').textContent      = joiners.length;
   document.getElementById('mv-exits').textContent        = exits.length;
@@ -2607,6 +2640,10 @@ function renderMovementTab(){
   document.getElementById('mv-added-cost').textContent   = fmt(joinerCost);
   document.getElementById('mv-exit-cost').textContent    = fmt(exitCost);
   document.getElementById('mv-closing-cost').textContent = fmt(closingCost);
+  document.getElementById('mv-closing-cost2').textContent= fmt(closingCost);
+  document.getElementById('mv-rev-cost').textContent     = fmt(revIncrement);
+  document.getElementById('mv-rr-cost').textContent      = fmt(rrCostMv);
+  document.getElementById('mv-final-cost').textContent   = fmt(finalCost);
 
   // New Joiners table
   const jBody=document.getElementById('mv-joiners-body');
