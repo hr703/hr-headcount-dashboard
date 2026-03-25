@@ -2520,8 +2520,8 @@ function renderMovementTab(){
   const month=document.getElementById('mv-month').value;
   if(!month) return;
 
-  // Opening = employees whose DOJ < this month (joined before this month started)
-  const opening = employees.filter(e=>{ const d=parseDoj(e.doj); return d && d<month; });
+  // Opening = employees whose DOJ < this month OR DOJ missing (assume already present)
+  const opening = employees.filter(e=>{ const d=parseDoj(e.doj); return !d || d<month; });
 
   // New Joiners = DOJ in this month
   const joiners = employees.filter(e=>parseDoj(e.doj).substring(0,7)===month);
