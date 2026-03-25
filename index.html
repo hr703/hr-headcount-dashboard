@@ -2585,8 +2585,8 @@ function renderMovementTab(){
     <td style="padding:8px 10px">${e.exitReason||'-'}</td>
   </tr>`).join('') : '<tr><td colspan="5" class="empty-msg">No exits this month</td></tr>';
 
-  // All Exited Employees (all time)
-  const allExited = employees.filter(e=>e.status==='Exited').sort((a,b)=>(b.exitDate||'').localeCompare(a.exitDate||''));
+  // All Exited Employees (all time) — status='Exited' OR exitDate set
+  const allExited = employees.filter(e=>e.status==='Exited'||(e.exitDate&&e.exitDate.trim())).sort((a,b)=>(b.exitDate||'').localeCompare(a.exitDate||''));
   const aeBody=document.getElementById('mv-all-exits-body');
   aeBody.innerHTML = allExited.length ? allExited.map(e=>`<tr style="border-bottom:1px solid #f1f5f9">
     <td style="padding:8px 10px;font-weight:700;color:var(--primary)">${e.empCode||e.id}</td>
