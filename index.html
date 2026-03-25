@@ -1248,7 +1248,8 @@ function fmt(n){ return '\u20B9'+Math.round(n).toLocaleString('en-IN'); }
 function pct(v,t){ return t>0?((v/t)*100).toFixed(1)+'%':'0%'; }
 
 function populateOvMonthFilter(){
-  const months=[...new Set(employees.map(e=>{ const d=parseDoj(e.doj); return d?d.substring(0,7):null; }).filter(Boolean))].sort();
+  const START='2025-04'; // April 2025 se start
+  const months=[...new Set(employees.map(e=>{ const d=parseDoj(e.doj); return d?d.substring(0,7):null; }).filter(Boolean))].sort().filter(m=>m>=START);
   const sel=document.getElementById('ov-month');
   const cur=sel.value;
   sel.innerHTML='<option value="">All Time</option>'+months.map(m=>`<option value="${m}"${cur===m?' selected':''}>${fmtMonth(m)}</option>`).join('');
