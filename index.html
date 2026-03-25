@@ -1044,6 +1044,23 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       </div>
     </div>
 
+    <!-- Employee Type Summary -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-hdr" style="background:linear-gradient(135deg,#1e3a5f,#0ea5e9)">Closing Headcount by Employee Type</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr>
+            <th style="background:#f8fafc;padding:10px 14px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Employee Type</th>
+            <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Opening</th>
+            <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">+ Joiners</th>
+            <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">− Exits</th>
+            <th style="background:#f8fafc;padding:10px 14px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Closing</th>
+          </tr></thead>
+          <tbody id="mv-type-body"><tr><td colspan="5" class="empty-msg">Select a month</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- New Joiners & Exits Tables side by side -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card">
@@ -2644,6 +2661,23 @@ function renderMovementTab(){
   document.getElementById('mv-rev-cost').textContent     = fmt(revIncrement);
   document.getElementById('mv-rr-cost').textContent      = fmt(rrCostMv);
   document.getElementById('mv-final-cost').textContent   = fmt(finalCost);
+
+  // Employee Type Summary
+  const empTypes = ['Full Time', 'Fixed Term Employee', 'Consultant'];
+  const typeBody = document.getElementById('mv-type-body');
+  typeBody.innerHTML = empTypes.map(t=>{
+    const tOpen    = opening.filter(e=>e.type===t).length;
+    const tJoiners = joiners.filter(e=>e.type===t).length;
+    const tExits   = exits.filter(e=>e.type===t).length;
+    const tClosing = tOpen + tJoiners - tExits;
+    return `<tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:9px 14px;font-weight:600">${t}</td>
+      <td style="padding:9px 14px;text-align:center">${tOpen}</td>
+      <td style="padding:9px 14px;text-align:center;color:#10b981;font-weight:600">+${tJoiners}</td>
+      <td style="padding:9px 14px;text-align:center;color:#ef4444;font-weight:600">-${tExits}</td>
+      <td style="padding:9px 14px;text-align:center;font-weight:700;color:var(--primary)">${tClosing}</td>
+    </tr>`;
+  }).join('');
 
   // New Joiners table
   const jBody=document.getElementById('mv-joiners-body');
