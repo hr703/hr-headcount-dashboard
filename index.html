@@ -2666,14 +2666,22 @@ function renderMovementTab(){
   document.getElementById('mv-rr-cost').textContent      = fmt(rrCostMv);
   document.getElementById('mv-final-cost').textContent   = fmt(finalCost);
 
-  // Employee Type Summary
+  // Employee Type Summary — normalize type for comparison
+  const normType=t=>{
+    if(!t) return 'Unknown';
+    const s=t.toLowerCase().replace(/-/g,' ').trim();
+    if(s==='full time'||s==='full-time') return 'Full Time';
+    if(s.includes('fixed')) return 'Fixed Term Employee';
+    if(s.includes('consult')) return 'Consultant';
+    return t;
+  };
   const empTypes = ['Full Time', 'Fixed Term Employee', 'Consultant'];
   const typeBody = document.getElementById('mv-type-body');
   let totOpen=0,totOpenCost=0,totJoin=0,totJoinCost=0,totExit=0,totExitCost=0;
   typeBody.innerHTML = empTypes.map(t=>{
-    const tOpen     = opening.filter(e=>e.type===t);
-    const tJoiners  = joiners.filter(e=>e.type===t);
-    const tExits    = exits.filter(e=>e.type===t);
+    const tOpen     = opening.filter(e=>normType(e.type)===t);
+    const tJoiners  = joiners.filter(e=>normType(e.type)===t);
+    const tExits    = exits.filter(e=>normType(e.type)===t);
     const tOpenCost = tOpen.reduce((s,e)=>s+getSalaryAtMonth(e,month),0);
     const tJoinCost = tJoiners.reduce((s,e)=>s+(e.salary||0),0);
     const tExitCost = tExits.reduce((s,e)=>s+(e.salary||0),0);
@@ -2703,7 +2711,26 @@ function renderMovementTab(){
     <td style="padding:10px 14px;text-align:center;font-weight:800;color:#ef4444">-${fmt(totExitCost)}</td>
     <td style="padding:10px 14px;text-align:center;font-weight:800;color:var(--primary)">${totOpen+totJoin-totExit}</td>
     <td style="padding:10px 14px;text-align:center;font-weight:800;color:var(--primary)">${fmt(totOpenCost+totJoinCost-totExitCost)}</td>
-  </tr>`;
+  </tr>` + (()=>{
+    const ukOpen=opening.filter(e=>!['Full Time','Fixed Term Employee','Consultant'].includes(normType(e.type)));
+    const ukJoin=joiners.filter(e=>!['Full Time','Fixed Term Employee','Consultant'].includes(normType(e.type)));
+    const ukExit=exits.filter(e=>!['Full Time','Fixed Term Employee','Consultant'].includes(normType(e.type)));
+    if(!ukOpen.length&&!ukJoin.length&&!ukExit.length) return '';
+    const ukOC=ukOpen.reduce((s,e)=>s+getSalaryAtMonth(e,month),0);
+    const ukJC=ukJoin.reduce((s,e)=>s+(e.salary||0),0);
+    const ukEC=ukExit.reduce((s,e)=>s+(e.salary||0),0);
+    return `<tr style="border-bottom:1px solid #f1f5f9;background:#fff8f0">
+      <td style="padding:9px 14px;font-weight:600;color:#f59e0b">Unknown Type</td>
+      <td style="padding:9px 14px;text-align:center">${ukOpen.length}</td>
+      <td style="padding:9px 14px;text-align:center">${fmt(ukOC)}</td>
+      <td style="padding:9px 14px;text-align:center;color:#10b981;font-weight:600">+${ukJoin.length}</td>
+      <td style="padding:9px 14px;text-align:center;color:#10b981;font-weight:600">+${fmt(ukJC)}</td>
+      <td style="padding:9px 14px;text-align:center;color:#ef4444;font-weight:600">-${ukExit.length}</td>
+      <td style="padding:9px 14px;text-align:center;color:#ef4444;font-weight:600">-${fmt(ukEC)}</td>
+      <td style="padding:9px 14px;text-align:center;font-weight:700">${ukOpen.length+ukJoin.length-ukExit.length}</td>
+      <td style="padding:9px 14px;text-align:center;font-weight:700">${fmt(ukOC+ukJC-ukEC)}</td>
+    </tr>`;
+  })();
 
   // New Joiners table
   const jBody=document.getElementById('mv-joiners-body');
