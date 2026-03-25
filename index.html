@@ -1031,6 +1031,26 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
         </div>
       </div>
     </div>
+    <!-- All Exited Employees -->
+    <div class="card" style="margin-top:20px">
+      <div class="card-hdr" style="background:linear-gradient(135deg,#1e3a5f,#0ea5e9)">All Exited Employees</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Emp Code</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Name</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Department</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Designation</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Last Working Date</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Reason</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Sub Reason</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">CTC</th>
+          </tr></thead>
+          <tbody id="mv-all-exits-body"><tr><td colspan="8" class="empty-msg">No exited employees</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
   </div><!-- /tab-movement -->
 
 </div><!-- /container -->
@@ -2564,6 +2584,20 @@ function renderMovementTab(){
     <td style="padding:8px 10px">${e.exitDate||'-'}</td>
     <td style="padding:8px 10px">${e.exitReason||'-'}</td>
   </tr>`).join('') : '<tr><td colspan="5" class="empty-msg">No exits this month</td></tr>';
+
+  // All Exited Employees (all time)
+  const allExited = employees.filter(e=>e.status==='Exited').sort((a,b)=>(b.exitDate||'').localeCompare(a.exitDate||''));
+  const aeBody=document.getElementById('mv-all-exits-body');
+  aeBody.innerHTML = allExited.length ? allExited.map(e=>`<tr style="border-bottom:1px solid #f1f5f9">
+    <td style="padding:8px 10px;font-weight:700;color:var(--primary)">${e.empCode||e.id}</td>
+    <td style="padding:8px 10px;font-weight:600">${e.name}</td>
+    <td style="padding:8px 10px">${e.dept||'-'}</td>
+    <td style="padding:8px 10px">${e.desig||'-'}</td>
+    <td style="padding:8px 10px">${e.exitDate||'-'}</td>
+    <td style="padding:8px 10px">${e.exitReason||'-'}</td>
+    <td style="padding:8px 10px">${e.exitSubReason||'-'}</td>
+    <td style="padding:8px 10px;text-align:right;font-weight:600">${fmt(e.salary||0)}</td>
+  </tr>`).join('') : '<tr><td colspan="8" class="empty-msg">No exited employees</td></tr>';
 }
 function renderRRTab(){
   const rrEmps = employees.filter(e=>e.status==='RR');
