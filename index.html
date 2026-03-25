@@ -454,6 +454,27 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
     <div class="chart-card"><h4>&#128181; Cost by Status</h4><canvas id="chartCostStatus"></canvas></div>
   </div>
 
+  <!-- ── EXITED EMPLOYEES ── -->
+  <div class="sec-title">Exited Employees</div>
+  <div class="card">
+    <div id="ov-exited-hdr" class="card-hdr" style="background:linear-gradient(135deg,#7f1d1d,#ef4444)">All Exited Employees</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr>
+          <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Emp Code</th>
+          <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Name</th>
+          <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Department</th>
+          <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Designation</th>
+          <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Last Working Date</th>
+          <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Reason</th>
+          <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Sub Reason</th>
+          <th style="background:#f8fafc;padding:8px 10px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">CTC</th>
+        </tr></thead>
+        <tbody id="ov-exited-body"><tr><td colspan="8" class="empty-msg">No exited employees</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
   </div><!-- /tab-overview -->
 
   <!-- ════════════════ TAB: COST ANALYSIS ════════════════ -->
@@ -1475,6 +1496,22 @@ function renderKPIs(){
   document.getElementById('s-gender-detail').textContent = femaleCount+' Female, '+(employees.filter(e=>e.gender==='Male').length)+' Male';
   document.getElementById('s-locations').textContent   = locs.length;
   document.getElementById('s-loc-detail').textContent  = locs.length>0 ? 'Top: '+topLoc : 'No locations added';
+
+  // Exited Employees table in Overview
+  const allExitedOv = employees.filter(e=>e.status==='Exited'||(e.exitDate&&e.exitDate.trim())).sort((a,b)=>(b.exitDate||'').localeCompare(a.exitDate||''));
+  const ovHdr=document.getElementById('ov-exited-hdr');
+  if(ovHdr) ovHdr.textContent='All Exited Employees (Total: '+allExitedOv.length+')';
+  const ovExBody=document.getElementById('ov-exited-body');
+  if(ovExBody) ovExBody.innerHTML = allExitedOv.length ? allExitedOv.map(e=>`<tr style="border-bottom:1px solid #f1f5f9">
+    <td style="padding:8px 10px;font-weight:700;color:var(--primary)">${e.empCode||e.id||'-'}</td>
+    <td style="padding:8px 10px;font-weight:600">${e.name}</td>
+    <td style="padding:8px 10px">${e.dept||'-'}</td>
+    <td style="padding:8px 10px">${e.desig||'-'}</td>
+    <td style="padding:8px 10px">${e.exitDate||'-'}</td>
+    <td style="padding:8px 10px">${e.exitReason||'-'}</td>
+    <td style="padding:8px 10px">${e.exitSubReason||'-'}</td>
+    <td style="padding:8px 10px;text-align:right;font-weight:600">${fmt(e.salary||0)}</td>
+  </tr>`).join('') : '<tr><td colspan="8" class="empty-msg">No exited employees</td></tr>';
 }
 
 function renderInsights(){
