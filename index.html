@@ -304,6 +304,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       <button class="tab-btn" onclick="switchTab('revision',this)">&#128200; Mid Year Salary Revision</button>
       <button class="tab-btn" onclick="switchTab('esop',this)">&#127381; ESOP</button>
       <button class="tab-btn" onclick="switchTab('rr',this)">&#128683; Role Transition</button>
+      <button class="tab-btn" onclick="switchTab('movement',this)">&#128200; Headcount Movement</button>
     </div>
   </div>
 
@@ -936,6 +937,101 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       </div>
     </div>
   </div><!-- /tab-rr -->
+
+  <!-- ════════════════ TAB: HEADCOUNT MOVEMENT ════════════════ -->
+  <div class="tab-content" id="tab-movement">
+    <div class="sec-title">Headcount Movement</div>
+
+    <!-- Month Selector -->
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 0 16px 0;flex-wrap:wrap">
+      <label style="font-size:13px;font-weight:600;color:var(--primary)">&#128197; Select Month:</label>
+      <select id="mv-month" onchange="renderMovementTab()" style="padding:7px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;background:#fff;min-width:160px"></select>
+    </div>
+
+    <!-- Formula KPI Row -->
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:24px">
+      <div class="kpi kpi-total" style="flex:1;min-width:160px;text-align:center">
+        <div class="lbl">Opening Headcount</div>
+        <div class="val" id="mv-opening">0</div>
+        <div class="sub">Start of month</div>
+      </div>
+      <div style="font-size:28px;font-weight:800;color:#10b981">+</div>
+      <div class="kpi kpi-active" style="flex:1;min-width:160px;text-align:center">
+        <div class="lbl">New Joiners</div>
+        <div class="val" id="mv-joiners">0</div>
+        <div class="sub">Joined this month</div>
+      </div>
+      <div style="font-size:28px;font-weight:800;color:#ef4444">−</div>
+      <div class="kpi" style="flex:1;min-width:160px;text-align:center;--kpi-color:#ef4444;--kpi-bg:#fee2e2">
+        <div class="lbl">Exits</div>
+        <div class="val" id="mv-exits">0</div>
+        <div class="sub">Left this month</div>
+      </div>
+      <div style="font-size:28px;font-weight:800;color:#1e3a5f">=</div>
+      <div class="kpi kpi-cost" style="flex:1;min-width:160px;text-align:center">
+        <div class="lbl">Closing Headcount</div>
+        <div class="val" id="mv-closing">0</div>
+        <div class="sub">End of month</div>
+      </div>
+    </div>
+
+    <!-- Cost Movement Row -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
+      <div class="kpi" style="--kpi-color:#1e3a5f;--kpi-bg:#dbeafe;text-align:center">
+        <div class="lbl">Opening Cost</div>
+        <div class="val sm" id="mv-opening-cost">&#8377;0</div>
+        <div class="sub">Monthly CTC</div>
+      </div>
+      <div class="kpi" style="--kpi-color:#10b981;--kpi-bg:#d1fae5;text-align:center">
+        <div class="lbl">Cost Added</div>
+        <div class="val sm" id="mv-added-cost">&#8377;0</div>
+        <div class="sub">New joiners CTC</div>
+      </div>
+      <div class="kpi" style="--kpi-color:#ef4444;--kpi-bg:#fee2e2;text-align:center">
+        <div class="lbl">Cost Reduced</div>
+        <div class="val sm" id="mv-exit-cost">&#8377;0</div>
+        <div class="sub">Exits CTC</div>
+      </div>
+      <div class="kpi kpi-cost" style="text-align:center">
+        <div class="lbl">Closing Cost</div>
+        <div class="val sm" id="mv-closing-cost">&#8377;0</div>
+        <div class="sub">Monthly CTC</div>
+      </div>
+    </div>
+
+    <!-- New Joiners & Exits Tables side by side -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#10b981,#059669)">New Joiners</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Emp Code</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Name</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Department</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">DOJ</th>
+            </tr></thead>
+            <tbody id="mv-joiners-body"><tr><td colspan="4" class="empty-msg">No joiners</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#ef4444,#dc2626)">Exits</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Emp Code</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Name</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Department</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Exit Date</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Reason</th>
+            </tr></thead>
+            <tbody id="mv-exits-body"><tr><td colspan="5" class="empty-msg">No exits</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div><!-- /tab-movement -->
 
 </div><!-- /container -->
 
@@ -1764,6 +1860,7 @@ function switchTab(name, btn){
     if(name==='revision') renderRevisionTab();
     if(name==='esop')     renderEsopTab();
     if(name==='rr')       renderRRTab();
+    if(name==='movement') renderMovementTab();
   });
 }
 
@@ -2407,6 +2504,66 @@ function initApp(){
 // ================================================================
 // RR TAB
 // ================================================================
+function populateMvMonthFilter(){
+  const months=[...new Set(employees.map(e=>{ const d=parseDoj(e.doj); return d?d.substring(0,7):null; }).filter(Boolean))].sort().filter(m=>m>='2025-04');
+  // Also include exit months
+  employees.forEach(e=>{ if(e.exitDate&&e.exitDate.length>=7) months.push(e.exitDate.substring(0,7)); });
+  const uniq=[...new Set(months)].sort().filter(m=>m>='2025-04');
+  const sel=document.getElementById('mv-month');
+  if(!sel) return;
+  const cur=sel.value;
+  sel.innerHTML=uniq.map(m=>`<option value="${m}"${cur===m?' selected':''}>${fmtMonth(m)}</option>`).join('');
+  if(!cur && uniq.length) sel.value=uniq[uniq.length-1]; // default to latest month
+}
+function renderMovementTab(){
+  populateMvMonthFilter();
+  const month=document.getElementById('mv-month').value;
+  if(!month) return;
+
+  // Opening = employees whose DOJ < this month (joined before this month started)
+  const opening = employees.filter(e=>{ const d=parseDoj(e.doj); return d && d<month; });
+
+  // New Joiners = DOJ in this month
+  const joiners = employees.filter(e=>parseDoj(e.doj).substring(0,7)===month);
+
+  // Exits = exitDate in this month
+  const exits = employees.filter(e=>e.exitDate && e.exitDate.substring(0,7)===month);
+
+  const closing = opening.length + joiners.length - exits.length;
+
+  const openingCost = opening.reduce((s,e)=>s+getSalaryAtMonth(e,month),0);
+  const joinerCost  = joiners.reduce((s,e)=>s+(e.salary||0),0);
+  const exitCost    = exits.reduce((s,e)=>s+(e.salary||0),0);
+  const closingCost = openingCost + joinerCost - exitCost;
+
+  document.getElementById('mv-opening').textContent      = opening.length;
+  document.getElementById('mv-joiners').textContent      = joiners.length;
+  document.getElementById('mv-exits').textContent        = exits.length;
+  document.getElementById('mv-closing').textContent      = closing;
+  document.getElementById('mv-opening-cost').textContent = fmt(openingCost);
+  document.getElementById('mv-added-cost').textContent   = fmt(joinerCost);
+  document.getElementById('mv-exit-cost').textContent    = fmt(exitCost);
+  document.getElementById('mv-closing-cost').textContent = fmt(closingCost);
+
+  // New Joiners table
+  const jBody=document.getElementById('mv-joiners-body');
+  jBody.innerHTML = joiners.length ? joiners.map(e=>`<tr style="border-bottom:1px solid #f1f5f9">
+    <td style="padding:8px 10px;font-weight:700;color:var(--primary)">${e.empCode||e.id}</td>
+    <td style="padding:8px 10px">${e.name}</td>
+    <td style="padding:8px 10px">${e.dept}</td>
+    <td style="padding:8px 10px">${e.doj||'-'}</td>
+  </tr>`).join('') : '<tr><td colspan="4" class="empty-msg">No joiners this month</td></tr>';
+
+  // Exits table
+  const eBody=document.getElementById('mv-exits-body');
+  eBody.innerHTML = exits.length ? exits.map(e=>`<tr style="border-bottom:1px solid #f1f5f9">
+    <td style="padding:8px 10px;font-weight:700;color:var(--primary)">${e.empCode||e.id}</td>
+    <td style="padding:8px 10px">${e.name}</td>
+    <td style="padding:8px 10px">${e.dept}</td>
+    <td style="padding:8px 10px">${e.exitDate||'-'}</td>
+    <td style="padding:8px 10px">${e.exitReason||'-'}</td>
+  </tr>`).join('') : '<tr><td colspan="5" class="empty-msg">No exits this month</td></tr>';
+}
 function renderRRTab(){
   const rrEmps = employees.filter(e=>e.status==='RR');
   const depts = {};
