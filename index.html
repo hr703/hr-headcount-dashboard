@@ -1046,13 +1046,13 @@ function saveEmployee(){
 function editEmployeeByIdx(idx){
   const e=employees[idx]; if(!e) return;
   document.getElementById('em-id').value          = idx;
-  document.getElementById('em-empId').textContent = e.id||'';
+  document.getElementById('em-empId').textContent = e.empCode||e.id||'';
   document.getElementById('em-name').value        = e.name||'';
   document.getElementById('em-dept').value        = e.dept||'';
   document.getElementById('em-desig').value       = e.desig||'';
   document.getElementById('em-status').value      = e.status||'Active';
   document.getElementById('em-salary').value      = e.salary||'';
-  document.getElementById('em-doj').value         = e.doj||'';
+  document.getElementById('em-doj').value         = parseDoj(e.doj)||'';
   document.getElementById('em-gender').value      = e.gender||'';
   document.getElementById('em-type').value        = e.type||'';
   document.getElementById('em-manager').value     = e.manager||'';
@@ -1189,16 +1189,25 @@ function getFiltered(){
   const loc   =document.getElementById('flt-location').value;
   const month =document.getElementById('flt-month').value; // format: "YYYY-MM"
   return employees.filter(e=>{
-    const txt=[e.id,e.name,e.dept,e.desig,e.manager,e.location,e.mobile,e.email].join(' ').toLowerCase();
-    // "As of month" filter: include employees whose DOJ <= last day of selected month
-    const dojOk = !month || (e.doj && e.doj.substring(0,7) <= month);
+    const txt=[e.empCode||e.id,e.name,e.dept,e.desig,e.manager,e.location,e.mobile,e.email].join(' ').toLowerCase();
+    const dojOk = !month || (parseDoj(e.doj).substring(0,7) <= month && parseDoj(e.doj)!=='');
     return(!q||txt.includes(q))&&(!dept||e.dept===dept)&&(!stat||e.status===stat)&&(!type||e.type===type)&&(!loc||e.location===loc)&&dojOk;
   });
 }
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MON_MAP={jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
+// Convert any DOJ format to YYYY-MM-DD for date inputs & filtering
+function parseDoj(doj){
+  if(!doj) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(doj)) return doj;
+  // DD-Mon-YYYY e.g. "15-Jul-2024"
+  const m=doj.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
+  if(m){ const mo=MON_MAP[m[2].toLowerCase()]; return mo?`${m[3]}-${mo}-${m[1].padStart(2,'0')}`:''; }
+  return '';
+}
 function fmtMonth(m){ const [y,mo]=m.split('-'); return (MON[parseInt(mo,10)-1]||mo)+' '+y; }
 function populateMonthFilter(){
-  const months=[...new Set(employees.map(e=>e.doj&&/^\d{4}-\d{2}/.test(e.doj)?e.doj.substring(0,7):null).filter(Boolean))].sort();
+  const months=[...new Set(employees.map(e=>{ const d=parseDoj(e.doj); return d?d.substring(0,7):null; }).filter(Boolean))].sort();
   const sel=document.getElementById('flt-month');
   const cur=sel.value;
   sel.innerHTML='<option value="">As of Month</option>'+months.map(m=>`<option value="${m}"${cur===m?' selected':''}>${fmtMonth(m)}</option>`).join('');
@@ -1239,14 +1248,14 @@ function fmt(n){ return '\u20B9'+Math.round(n).toLocaleString('en-IN'); }
 function pct(v,t){ return t>0?((v/t)*100).toFixed(1)+'%':'0%'; }
 
 function populateOvMonthFilter(){
-  const months=[...new Set(employees.map(e=>e.doj&&/^\d{4}-\d{2}/.test(e.doj)?e.doj.substring(0,7):null).filter(Boolean))].sort();
+  const months=[...new Set(employees.map(e=>{ const d=parseDoj(e.doj); return d?d.substring(0,7):null; }).filter(Boolean))].sort();
   const sel=document.getElementById('ov-month');
   const cur=sel.value;
   sel.innerHTML='<option value="">All Time</option>'+months.map(m=>`<option value="${m}"${cur===m?' selected':''}>${fmtMonth(m)}</option>`).join('');
 }
 function renderKPIs(){
   const ovMonth=document.getElementById('ov-month')?document.getElementById('ov-month').value:'';
-  const base = ovMonth ? employees.filter(e=>e.doj && e.doj.substring(0,7)<=ovMonth) : employees;
+  const base = ovMonth ? employees.filter(e=>{ const d=parseDoj(e.doj); return d && d.substring(0,7)<=ovMonth; }) : employees;
   const lbl=document.getElementById('ov-month-label');
   if(lbl) lbl.textContent=ovMonth?`Showing headcount as of end of selected month`:'';
   const total  = base.length;
@@ -1385,7 +1394,7 @@ function renderEmpTable(){
     const col=colors[i%colors.length];
     return `<tr class="${selectedIds.has(e.id)?'selected-row':''}">
       <td style="text-align:center"><input type="checkbox" ${selectedIds.has(e.id)?'checked':''} onchange="toggleRowSelect('${e.id}',this)"/></td>
-      <td style="font-weight:700;color:var(--primary)">${e.id}</td>
+      <td style="font-weight:700;color:var(--primary)">${e.empCode||e.id}</td>
       <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="background:${col}">${initials}</div>${e.name}</div></td>
       <td>${e.gender||'-'}</td><td>${e.type||'-'}</td>
       <td>${e.dept}</td><td>${e.desig||'-'}</td><td>${e.manager||'-'}</td><td>${e.location||'-'}</td>
@@ -1806,14 +1815,14 @@ function renderCostTab(){
 function populateRevEmpDropdown(){
   document.getElementById('rv-emp').innerHTML =
     '<option value="">-- Select Employee --</option>' +
-    employees.map(e=>`<option value="${e.id}">${e.name} (${e.id})</option>`).join('');
+    employees.map(e=>`<option value="${e.id}">${e.name} (${e.empCode||e.id})</option>`).join('');
 }
 
 function autoFillRevision(){
   const id = document.getElementById('rv-emp').value;
   const e  = employees.find(x=>x.id===id);
   if(!e) return;
-  document.getElementById('rv-code').value = e.id;
+  document.getElementById('rv-code').value = e.empCode||e.id;
   document.getElementById('rv-dept').value = e.dept;
   document.getElementById('rv-old').value  = e.salary||'';
   calcIncrement();
@@ -2019,13 +2028,13 @@ function renderRevCharts(){
 function populateEsopEmpDropdown(){
   document.getElementById('esop-emp').innerHTML =
     '<option value="">-- Select Employee --</option>'+
-    employees.map(e=>`<option value="${e.id}">${e.name} (${e.id})</option>`).join('');
+    employees.map(e=>`<option value="${e.id}">${e.name} (${e.empCode||e.id})</option>`).join('');
 }
 
 function autoFillEsop(){
   const id=document.getElementById('esop-emp').value;
   const e=employees.find(x=>x.id===id); if(!e) return;
-  document.getElementById('esop-code').value=e.id;
+  document.getElementById('esop-code').value=e.empCode||e.id;
   document.getElementById('esop-dept').value=e.dept;
 }
 
