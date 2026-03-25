@@ -1043,9 +1043,18 @@ function saveEmployee(){
   }
   save(); clearForm(); render();
 }
+function toggleRevDateField(){
+  const idx=parseInt(document.getElementById('em-id').value);
+  const oldSalary=isNaN(idx)?0:(employees[idx]?.salary||0);
+  const newSalary=parseFloat(document.getElementById('em-salary').value)||0;
+  const wrap=document.getElementById('em-rev-date-wrap');
+  wrap.style.display=(newSalary!==oldSalary&&newSalary>0)?'block':'none';
+}
 function editEmployeeByIdx(idx){
   const e=employees[idx]; if(!e) return;
   document.getElementById('em-id').value          = idx;
+  document.getElementById('em-rev-date-wrap').style.display='none';
+  document.getElementById('em-rev-date').value='';
   document.getElementById('em-empId').textContent = e.empCode||e.id||'';
   document.getElementById('em-name').value        = e.name||'';
   document.getElementById('em-dept').value        = e.dept||'';
@@ -1101,12 +1110,37 @@ function editEmployee(empId){
 function closeEditEmpModal(){ document.getElementById('editEmpModal').style.display='none'; }
 function saveEditEmpModal(){
   const idx = parseInt(document.getElementById('em-id').value); if(isNaN(idx)||idx<0) return;
+  const oldSalary = employees[idx].salary||0;
+  const newSalary = parseFloat(document.getElementById('em-salary').value)||0;
+  const revDate   = document.getElementById('em-rev-date').value;
   employees[idx].name     = document.getElementById('em-name').value.trim();
   employees[idx].dept     = document.getElementById('em-dept').value;
   employees[idx].desig    = document.getElementById('em-desig').value.trim();
   employees[idx].status   = document.getElementById('em-status').value;
-  employees[idx].salary   = parseFloat(document.getElementById('em-salary').value)||0;
+  employees[idx].salary   = newSalary;
   employees[idx].doj      = document.getElementById('em-doj').value;
+  // Auto-add salary revision if salary changed and effective date given
+  if(newSalary !== oldSalary && newSalary > 0 && revDate){
+    const e = employees[idx];
+    const inc = newSalary - oldSalary;
+    const hikePct = oldSalary>0 ? parseFloat(((inc/oldSalary)*100).toFixed(2)) : 0;
+    const newRev = {
+      id: 'RV'+Date.now(),
+      empId: e.empCode||e.id,
+      empName: e.name,
+      empCode: e.empCode||e.id,
+      dept: e.dept,
+      oldCtc: oldSalary,
+      newCtc: newSalary,
+      inc: inc,
+      hikePct: hikePct,
+      type: 'Salary Revision',
+      date: revDate,
+      approver: 'HR'
+    };
+    revisions.push(newRev);
+    toast('Salary revision auto-added!','#10b981');
+  }
   employees[idx].gender   = document.getElementById('em-gender').value;
   employees[idx].type     = document.getElementById('em-type').value;
   employees[idx].manager  = document.getElementById('em-manager').value.trim();
@@ -2489,7 +2523,12 @@ function renderRRTab(){
       </div>
       <div>
         <label style="font-size:11px;font-weight:700;color:#64748b">MONTHLY CTC (&#8377;)</label>
-        <input id="em-salary" type="number" min="0" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+        <input id="em-salary" type="number" min="0" oninput="toggleRevDateField()" style="width:100%;padding:9px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;outline:none;margin-top:4px"/>
+      </div>
+      <div id="em-rev-date-wrap" style="display:none">
+        <label style="font-size:11px;font-weight:700;color:#0ea5e9">REVISION EFFECTIVE DATE &#128197;</label>
+        <input id="em-rev-date" type="date" style="width:100%;padding:9px;border:1.5px solid #0ea5e9;border-radius:8px;font-size:13px;outline:none;margin-top:4px;background:#f0f9ff"/>
+        <div style="font-size:10px;color:#0ea5e9;margin-top:3px">Salary Revision tab mein auto-entry hogi</div>
       </div>
       <div>
         <label style="font-size:11px;font-weight:700;color:#64748b">DATE OF JOINING</label>
