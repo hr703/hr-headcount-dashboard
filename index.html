@@ -1253,22 +1253,31 @@ function populateOvMonthFilter(){
   const cur=sel.value;
   sel.innerHTML='<option value="">All Time</option>'+months.map(m=>`<option value="${m}"${cur===m?' selected':''}>${fmtMonth(m)}</option>`).join('');
 }
+function getSalaryAtMonth(emp, month){
+  // Returns effective salary for employee at given month (YYYY-MM)
+  // Finds latest revision whose effective date <= end of selected month
+  if(!month) return emp.salary||0;
+  const applicable = revisions
+    .filter(r=>(r.empId===emp.empCode||r.empCode===emp.empCode) && r.date && r.date.substring(0,7)<=month)
+    .sort((a,b)=>a.date>b.date?-1:1); // latest first
+  return applicable.length>0 ? (applicable[0].newCtc||emp.salary||0) : (emp.salary||0);
+}
 function renderKPIs(){
   const ovMonth=document.getElementById('ov-month')?document.getElementById('ov-month').value:'';
   const base = ovMonth ? employees.filter(e=>{ const d=parseDoj(e.doj); return d && d.substring(0,7)<=ovMonth; }) : employees;
   const lbl=document.getElementById('ov-month-label');
-  if(lbl) lbl.textContent=ovMonth?`Showing headcount as of end of selected month`:'';
+  if(lbl) lbl.textContent=ovMonth?`Headcount & cost as of selected month (incl. salary revisions)`:'';
   const total  = base.length;
   const activeE  = base.filter(e=>e.status==='Active');
   const noticeE  = base.filter(e=>e.status==='Serving Notice');
   const joiningE = base.filter(e=>e.status==='Yet to Join');
   const rrE      = base.filter(e=>e.status==='RR');
   const exitedE  = base.filter(e=>e.status==='Exited');
-  const totalCost  = base.reduce((s,e)=>s+(e.salary||0),0);
-  const activeCost = activeE.reduce((s,e)=>s+(e.salary||0),0);
-  const noticeCost = noticeE.reduce((s,e)=>s+(e.salary||0),0);
-  const joiningCost= joiningE.reduce((s,e)=>s+(e.salary||0),0);
-  const rrCost     = rrE.reduce((s,e)=>s+(e.salary||0),0);
+  const totalCost  = base.reduce((s,e)=>s+getSalaryAtMonth(e,ovMonth),0);
+  const activeCost = activeE.reduce((s,e)=>s+getSalaryAtMonth(e,ovMonth),0);
+  const noticeCost = noticeE.reduce((s,e)=>s+getSalaryAtMonth(e,ovMonth),0);
+  const joiningCost= joiningE.reduce((s,e)=>s+getSalaryAtMonth(e,ovMonth),0);
+  const rrCost     = rrE.reduce((s,e)=>s+getSalaryAtMonth(e,ovMonth),0);
   const femaleCount= base.filter(e=>e.gender==='Female').length;
   const locs=[...new Set(base.map(e=>e.location).filter(Boolean))];
   const avgCtc = total>0 ? Math.round(totalCost/total) : 0;
@@ -1292,7 +1301,7 @@ function renderKPIs(){
   document.getElementById('s-rr-pct').textContent       = pct(rrE.length,total);
   document.getElementById('s-exited').textContent       = exitedE.length;
   document.getElementById('s-exited-pct').textContent   = pct(exitedE.length,total);
-  document.getElementById('s-exited-cost').textContent  = fmt(exitedE.reduce((s,e)=>s+(e.salary||0),0))+' / month';
+  document.getElementById('s-exited-cost').textContent  = fmt(exitedE.reduce((s,e)=>s+getSalaryAtMonth(e,ovMonth),0))+' / month';
   document.getElementById('s-active-cost').textContent  = fmt(activeCost)+' / month';
   document.getElementById('s-notice-cost').textContent  = fmt(noticeCost)+' / month';
   document.getElementById('s-joining-cost').textContent = fmt(joiningCost)+' / month';
@@ -1303,9 +1312,9 @@ function renderKPIs(){
   document.getElementById('s-fixedterm').textContent     = fixedTermE.length;
   document.getElementById('s-consultant').textContent    = consultantE.length;
   document.getElementById('s-fulltime-pct').textContent  = pct(fullTimeE.length,total)+' of total';
-  document.getElementById('s-fulltime-cost').textContent  = '₹'+fmt(fullTimeE.reduce((s,e)=>s+(e.salary||0),0))+' / month';
-  document.getElementById('s-fixedterm-cost').textContent = '₹'+fmt(fixedTermE.reduce((s,e)=>s+(e.salary||0),0))+' / month';
-  document.getElementById('s-consultant-cost').textContent= '₹'+fmt(consultantE.reduce((s,e)=>s+(e.salary||0),0))+' / month';
+  document.getElementById('s-fulltime-cost').textContent  = '₹'+fmt(fullTimeE.reduce((s,e)=>s+getSalaryAtMonth(e,ovMonth),0))+' / month';
+  document.getElementById('s-fixedterm-cost').textContent = '₹'+fmt(fixedTermE.reduce((s,e)=>s+getSalaryAtMonth(e,ovMonth),0))+' / month';
+  document.getElementById('s-consultant-cost').textContent= '₹'+fmt(consultantE.reduce((s,e)=>s+getSalaryAtMonth(e,ovMonth),0))+' / month';
   document.getElementById('s-fixedterm-pct').textContent = pct(fixedTermE.length,total)+' of total';
   document.getElementById('s-consultant-pct').textContent= pct(consultantE.length,total)+' of total';
   document.getElementById('s-attrition').textContent   = pct(noticeE.length,total);
