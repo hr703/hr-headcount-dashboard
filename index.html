@@ -700,7 +700,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
             <div class="form-group"><label>Approved By</label><input type="text" id="rv-approver" placeholder="Manager / HR Head"/></div>
             <div class="form-group">
               <label>Status</label>
-              <select id="rv-status"><option value="Approved">Approved</option><option value="Pending">Pending</option><option value="On Hold">On Hold</option></select>
+              <select id="rv-status"><option value="Approved">Approved</option><option value="Pending">Pending</option><option value="On Hold">On Hold</option><option value="Done">Done</option></select>
             </div>
           </div>
           <div class="form-group"><label>Remarks</label><input type="text" id="rv-remarks" placeholder="Reason for revision..."/></div>
@@ -1989,6 +1989,7 @@ function renderRevTable(){
     'Approved': '<span class="badge b-active">Approved</span>',
     'Pending':  '<span class="badge b-notice">Pending</span>',
     'On Hold':  '<span class="badge b-joining">On Hold</span>',
+    'Done':     '<span class="badge" style="background:#d1fae5;color:#065f46">✓ Done</span>',
   };
   const typeColor = {'Merit Increment':'#0ea5e9','Promotion':'#10b981','Market Correction':'#f59e0b','Special Recognition':'#ec4899','Role Change':'#8b5cf6'};
 
