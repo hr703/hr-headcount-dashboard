@@ -1184,6 +1184,22 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       </div>
     </div>
 
+    <!-- Charts Row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#1e3a5f,#0ea5e9)">Month-wise Exit Trend</div>
+        <div style="padding:16px"><canvas id="attrChartMonth" height="200"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">Dept-wise Exits</div>
+        <div style="padding:16px"><canvas id="attrChartDept" height="200"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#dc2626,#f87171)">Exit Reason Split</div>
+        <div style="padding:16px"><canvas id="attrChartReason" height="200"></canvas></div>
+      </div>
+    </div>
+
     <!-- Reason + Type side by side -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
       <div class="card">
@@ -2941,6 +2957,47 @@ function renderAttritionTab(){
       <td style="padding:8px 12px;text-align:center;font-weight:700;color:#ef4444">${c}</td>
       <td style="padding:8px 12px;text-align:center;color:#6b7280">${((c/exited.length)*100).toFixed(1)}%</td>
     </tr>`).join('');
+
+  // Charts
+  const monthsSorted = Object.entries(byMonth).sort((a,b)=>a[0].localeCompare(b[0]));
+  const deptsSorted  = Object.entries(byDept).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const reasonsSorted= Object.entries(byReason).sort((a,b)=>b[1]-a[1]);
+
+  const COLORS=['#ef4444','#f59e0b','#10b981','#0ea5e9','#8b5cf6','#ec4899','#f97316','#14b8a6','#6366f1','#84cc16'];
+
+  if(window._attrChartMonth) window._attrChartMonth.destroy();
+  if(window._attrChartDept)  window._attrChartDept.destroy();
+  if(window._attrChartReason)window._attrChartReason.destroy();
+
+  window._attrChartMonth = new Chart(document.getElementById('attrChartMonth'),{
+    type:'bar',
+    data:{
+      labels: monthsSorted.map(([m])=>fmtMonth(m)),
+      datasets:[{label:'Exits', data:monthsSorted.map(([,v])=>v.cnt),
+        backgroundColor:'rgba(239,68,68,0.7)', borderColor:'#ef4444', borderWidth:2, borderRadius:6}]
+    },
+    options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{stepSize:1}}}}
+  });
+
+  window._attrChartDept = new Chart(document.getElementById('attrChartDept'),{
+    type:'bar',
+    data:{
+      labels: deptsSorted.map(([d])=>d),
+      datasets:[{label:'Exits', data:deptsSorted.map(([,c])=>c),
+        backgroundColor:deptsSorted.map((_,i)=>COLORS[i%COLORS.length]+'cc'), borderRadius:6}]
+    },
+    options:{responsive:true, indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{stepSize:1}}}}
+  });
+
+  window._attrChartReason = new Chart(document.getElementById('attrChartReason'),{
+    type:'doughnut',
+    data:{
+      labels: reasonsSorted.map(([k])=>k.split('|')[0]+(k.split('|')[1]&&k.split('|')[1]!=='-'?' ('+k.split('|')[1]+')':'')),
+      datasets:[{data:reasonsSorted.map(([,c])=>c),
+        backgroundColor:reasonsSorted.map((_,i)=>COLORS[i%COLORS.length]), borderWidth:2}]
+    },
+    options:{responsive:true, plugins:{legend:{position:'bottom', labels:{font:{size:10}, boxWidth:12}}}}
+  });
 
   // Detail list
   const hdr=document.getElementById('attr-list-hdr');
