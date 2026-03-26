@@ -2904,7 +2904,7 @@ function renderAttritionTab(){
   // Month-wise
   const byMonth={};
   exited.forEach(e=>{ const m=(e.exitDate||'Unknown').substring(0,7); if(!byMonth[m]) byMonth[m]={cnt:0,cost:0}; byMonth[m].cnt++; byMonth[m].cost+=(e.salary||0); });
-  document.getElementById('attr-month-body').innerHTML = Object.keys(byMonth).sort().reverse().map(m=>`
+  document.getElementById('attr-month-body').innerHTML = Object.entries(byMonth).sort((a,b)=>b[1].cnt-a[1].cnt).map(([m])=>`
     <tr style="border-bottom:1px solid #f1f5f9">
       <td style="padding:8px 12px;font-weight:600">${fmtMonth(m)}</td>
       <td style="padding:8px 12px;text-align:center;font-weight:700;color:#ef4444">${byMonth[m].cnt}</td>
