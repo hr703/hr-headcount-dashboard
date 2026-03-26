@@ -305,6 +305,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       <button class="tab-btn" onclick="switchTab('esop',this)">&#127381; ESOP</button>
       <button class="tab-btn" onclick="switchTab('rr',this)">&#128683; Role Transition</button>
       <button class="tab-btn" onclick="switchTab('movement',this)">&#128200; Headcount Movement</button>
+      <button class="tab-btn" onclick="switchTab('attrition',this)">&#128683; Attrition Analysis</button>
     </div>
   </div>
 
@@ -1118,6 +1119,124 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
     </div>
 
   </div><!-- /tab-movement -->
+
+  <!-- ════════════════ TAB: ATTRITION ANALYSIS ════════════════ -->
+  <div class="tab-content" id="tab-attrition">
+    <div class="sec-title">Attrition Analysis</div>
+
+    <!-- KPI Row -->
+    <div class="kpi-grid-1" style="margin-bottom:20px" id="attr-kpi-row">
+      <div class="kpi" style="--kpi-color:#ef4444;--kpi-bg:#fee2e2;text-align:center">
+        <div class="icon">&#128683;</div>
+        <div class="lbl">Total Exits</div>
+        <div class="val" id="attr-total">0</div>
+        <div class="sub">All time</div>
+      </div>
+      <div class="kpi" style="--kpi-color:#f59e0b;--kpi-bg:#fef3c7;text-align:center">
+        <div class="icon">&#128202;</div>
+        <div class="lbl">Attrition Rate</div>
+        <div class="val sm" id="attr-rate">0%</div>
+        <div class="sub">Exits / Total headcount</div>
+      </div>
+      <div class="kpi" style="--kpi-color:#8b5cf6;--kpi-bg:#ede9fe;text-align:center">
+        <div class="icon">&#128197;</div>
+        <div class="lbl">This Month Exits</div>
+        <div class="val" id="attr-this-month">0</div>
+        <div class="sub" id="attr-this-month-lbl">Current month</div>
+      </div>
+      <div class="kpi" style="--kpi-color:#0ea5e9;--kpi-bg:#e0f2fe;text-align:center">
+        <div class="icon">&#128184;</div>
+        <div class="lbl">Exit Cost (Monthly)</div>
+        <div class="val sm" id="attr-exit-cost">&#8377;0</div>
+        <div class="sub">CTC of exited employees</div>
+      </div>
+    </div>
+
+    <!-- Month-wise + Dept-wise side by side -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <!-- Month-wise -->
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#1e3a5f,#0ea5e9)">Month-wise Exits</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Month</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Exits</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Exit Cost</th>
+            </tr></thead>
+            <tbody id="attr-month-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Dept-wise -->
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">Department-wise Exits</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Department</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Exits</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">%</th>
+            </tr></thead>
+            <tbody id="attr-dept-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reason + Type side by side -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#dc2626,#f87171)">Exit Reason</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Reason</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Sub Reason</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Count</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">%</th>
+            </tr></thead>
+            <tbody id="attr-reason-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#059669,#34d399)">Employee Type-wise Exits</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Type</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Exits</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">%</th>
+            </tr></thead>
+            <tbody id="attr-type-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Exit List -->
+    <div class="card">
+      <div id="attr-list-hdr" class="card-hdr" style="background:linear-gradient(135deg,#1e3a5f,#374151)">Exited Employees Detail</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">#</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Emp Code</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Name</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Department</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Designation</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Type</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Exit Date</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Reason</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Sub Reason</th>
+            <th style="background:#f8fafc;padding:8px 10px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">CTC</th>
+          </tr></thead>
+          <tbody id="attr-list-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div><!-- /tab-attrition -->
 
 </div><!-- /container -->
 
@@ -1963,7 +2082,8 @@ function switchTab(name, btn){
     if(name==='revision') renderRevisionTab();
     if(name==='esop')     renderEsopTab();
     if(name==='rr')       renderRRTab();
-    if(name==='movement') renderMovementTab();
+    if(name==='movement')  renderMovementTab();
+    if(name==='attrition') renderAttritionTab();
   });
 }
 
@@ -2767,6 +2887,79 @@ function renderMovementTab(){
     <td style="padding:8px 10px;text-align:right;font-weight:600">${fmt(e.salary||0)}</td>
   </tr>`).join('') : '<tr><td colspan="8" class="empty-msg">No exited employees</td></tr>';
 }
+function renderAttritionTab(){
+  const exited = employees.filter(e=>e.status==='Exited'||(e.exitDate&&e.exitDate.trim()))
+    .sort((a,b)=>(b.exitDate||'').localeCompare(a.exitDate||''));
+  const total = employees.length;
+  const thisMonth = new Date().toISOString().substring(0,7);
+
+  // KPIs
+  document.getElementById('attr-total').textContent = exited.length;
+  document.getElementById('attr-rate').textContent  = ((exited.length/total)*100).toFixed(1)+'%';
+  const thisMonthExits = exited.filter(e=>(e.exitDate||'').substring(0,7)===thisMonth);
+  document.getElementById('attr-this-month').textContent = thisMonthExits.length;
+  document.getElementById('attr-this-month-lbl').textContent = fmtMonth(thisMonth);
+  document.getElementById('attr-exit-cost').textContent = fmt(exited.reduce((s,e)=>s+(e.salary||0),0));
+
+  // Month-wise
+  const byMonth={};
+  exited.forEach(e=>{ const m=(e.exitDate||'Unknown').substring(0,7); if(!byMonth[m]) byMonth[m]={cnt:0,cost:0}; byMonth[m].cnt++; byMonth[m].cost+=(e.salary||0); });
+  document.getElementById('attr-month-body').innerHTML = Object.keys(byMonth).sort().reverse().map(m=>`
+    <tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:8px 12px;font-weight:600">${fmtMonth(m)}</td>
+      <td style="padding:8px 12px;text-align:center;font-weight:700;color:#ef4444">${byMonth[m].cnt}</td>
+      <td style="padding:8px 12px;text-align:right">${fmt(byMonth[m].cost)}</td>
+    </tr>`).join('');
+
+  // Dept-wise
+  const byDept={};
+  exited.forEach(e=>{ const d=e.dept||'Unknown'; if(!byDept[d]) byDept[d]=0; byDept[d]++; });
+  document.getElementById('attr-dept-body').innerHTML = Object.entries(byDept).sort((a,b)=>b[1]-a[1]).map(([d,c])=>`
+    <tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:8px 12px">${d}</td>
+      <td style="padding:8px 12px;text-align:center;font-weight:700;color:#ef4444">${c}</td>
+      <td style="padding:8px 12px;text-align:center;color:#6b7280">${((c/exited.length)*100).toFixed(1)}%</td>
+    </tr>`).join('');
+
+  // Reason-wise
+  const byReason={};
+  exited.forEach(e=>{ const key=(e.exitReason||'Not Specified')+'|'+(e.exitSubReason||'-'); if(!byReason[key]) byReason[key]=0; byReason[key]++; });
+  document.getElementById('attr-reason-body').innerHTML = Object.entries(byReason).sort((a,b)=>b[1]-a[1]).map(([k,c])=>{
+    const [r,s]=k.split('|'); return `<tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:8px 12px;font-weight:600">${r}</td>
+      <td style="padding:8px 12px;color:#6b7280">${s}</td>
+      <td style="padding:8px 12px;text-align:center;font-weight:700;color:#ef4444">${c}</td>
+      <td style="padding:8px 12px;text-align:center;color:#6b7280">${((c/exited.length)*100).toFixed(1)}%</td>
+    </tr>`;}).join('');
+
+  // Type-wise
+  const byType={};
+  exited.forEach(e=>{ const t=e.type||'Unknown'; if(!byType[t]) byType[t]=0; byType[t]++; });
+  document.getElementById('attr-type-body').innerHTML = Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([t,c])=>`
+    <tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:8px 12px">${t}</td>
+      <td style="padding:8px 12px;text-align:center;font-weight:700;color:#ef4444">${c}</td>
+      <td style="padding:8px 12px;text-align:center;color:#6b7280">${((c/exited.length)*100).toFixed(1)}%</td>
+    </tr>`).join('');
+
+  // Detail list
+  const hdr=document.getElementById('attr-list-hdr');
+  if(hdr) hdr.textContent=`Exited Employees Detail (Total: ${exited.length})`;
+  document.getElementById('attr-list-body').innerHTML = exited.map((e,i)=>`
+    <tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:7px 10px;color:#6b7280">${i+1}</td>
+      <td style="padding:7px 10px;font-weight:700;color:var(--primary)">${e.empCode||e.id||'-'}</td>
+      <td style="padding:7px 10px;font-weight:600">${e.name}</td>
+      <td style="padding:7px 10px">${e.dept||'-'}</td>
+      <td style="padding:7px 10px">${e.desig||'-'}</td>
+      <td style="padding:7px 10px">${e.type||'-'}</td>
+      <td style="padding:7px 10px">${e.exitDate||'-'}</td>
+      <td style="padding:7px 10px">${e.exitReason||'-'}</td>
+      <td style="padding:7px 10px">${e.exitSubReason||'-'}</td>
+      <td style="padding:7px 10px;text-align:right;font-weight:600">${fmt(e.salary||0)}</td>
+    </tr>`).join('');
+}
+
 function renderRRTab(){
   const rrEmps = employees.filter(e=>e.status==='RR');
   const depts = {};
