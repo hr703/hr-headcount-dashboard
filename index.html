@@ -3061,10 +3061,10 @@ function renderMovementTab(){
     <td style="padding:8px 10px">${e.exitReason||'-'}</td>
   </tr>`).join('') : '<tr><td colspan="5" class="empty-msg">No exits this month</td></tr>';
 
-  // All Exited Employees (all time) — status='Exited' OR exitDate set
-  const allExited = employees.filter(e=>e.status==='Exited'||(e.exitDate&&e.exitDate.trim())).sort((a,b)=>(b.exitDate||'').localeCompare(a.exitDate||''));
+  // All Exited Employees — filtered by selected month
+  const allExited = employees.filter(e=>e.exitDate && e.exitDate.substring(0,7)===month).sort((a,b)=>(b.exitDate||'').localeCompare(a.exitDate||''));
   const aeHdr=document.getElementById('mv-all-exits-hdr');
-  if(aeHdr) aeHdr.textContent='All Exited Employees (Total: '+allExited.length+')';
+  if(aeHdr) aeHdr.textContent='Exited Employees — '+fmtMonth(month)+' (Total: '+allExited.length+')';
   const aeBody=document.getElementById('mv-all-exits-body');
   aeBody.innerHTML = allExited.length ? allExited.map(e=>`<tr style="border-bottom:1px solid #f1f5f9">
     <td style="padding:8px 10px;font-weight:700;color:var(--primary)">${e.empCode||e.id}</td>
