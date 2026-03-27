@@ -1335,7 +1335,8 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
             <th style="background:#fff7f7;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid #fecaca">Dept</th>
             <th style="background:#fff7f7;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid #fecaca">Status</th>
             <th style="background:#fff7f7;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid #fecaca">Tenure</th>
-            <th style="background:#fff7f7;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid #fecaca">Risk Reason</th>
+            <th style="background:#fff7f7;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid #fecaca">Risk Level</th>
+            <th style="background:#fff7f7;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid #fecaca">Risk Reasons</th>
           </tr></thead>
           <tbody id="tenure-risk-body"></tbody>
         </table>
@@ -3366,26 +3367,79 @@ function renderTenureTab(){
       <td style="padding:8px 12px;text-align:center;font-weight:700;color:#92400e">${fmtTenure(e.tenureM)}</td>
     </tr>`).join('');
 
+  // Pre-compute dept avg salary & dept attrition rate
+  const deptSalMap={}, deptExitMap={};
+  const activeEmps=employees.filter(e=>e.status==='Active'&&(e.salary||0)>0);
+  activeEmps.forEach(e=>{ const d=e.dept||'Unknown'; if(!deptSalMap[d]) deptSalMap[d]=[]; deptSalMap[d].push(e.salary); });
+  const deptAvgSal={};
+  Object.entries(deptSalMap).forEach(([d,arr])=>{ deptAvgSal[d]=arr.reduce((s,v)=>s+v,0)/arr.length; });
+  const exitedEmps=employees.filter(e=>e.status==='Exited'||(e.exitDate&&e.exitDate.trim()));
+  const totalByDept={};
+  employees.forEach(e=>{ const d=e.dept||'Unknown'; totalByDept[d]=(totalByDept[d]||0)+1; });
+  exitedEmps.forEach(e=>{ const d=e.dept||'Unknown'; deptExitMap[d]=(deptExitMap[d]||0)+1; });
+
   const riskEmps=[];
-  employees.forEach(e=>{
+  employees.filter(e=>e.status==='Active'||e.status==='RR').forEach(e=>{
     const risks=[];
-    if(e.status==='RR') risks.push('On Role Transition (RR)');
-    if(e.status==='Active'){
-      const lastRev=revisions.filter(r=>String(r.empId)===String(e.id)||String(r.empId)===String(e.empCode));
-      const m=tenureMonths(e.doj);
-      if(!lastRev.length && m && m>=12) risks.push('No salary revision (tenure: '+fmtTenure(m)+')');
-      if(m && m<3) risks.push('New hire < 3 months');
+    const m=tenureMonths(e.doj);
+    const empRevs=revisions.filter(r=>String(r.empId)===String(e.id)||String(r.empId)===String(e.empCode));
+
+    // 1. On Role Transition
+    if(e.status==='RR') risks.push({msg:'On Role Transition (RR)', weight:3});
+
+    // 2. No salary revision > 12 months
+    if(m && m>=12){
+      if(!empRevs.length){
+        risks.push({msg:'No salary revision ever (tenure: '+fmtTenure(m)+')', weight:3});
+      } else {
+        const lastRevDate=empRevs.map(r=>r.date||'').sort().reverse()[0];
+        if(lastRevDate){
+          const lastRevMs=(today-new Date(lastRevDate))/(1000*60*60*24*30);
+          if(lastRevMs>12) risks.push({msg:'No revision in '+Math.round(lastRevMs)+'m (last: '+lastRevDate.substring(0,7)+')', weight:2});
+        }
+      }
     }
-    if(risks.length) riskEmps.push({...e, risks, tenureM: tenureMonths(e.doj)});
+
+    // 3. New hire < 3 months (flight risk)
+    if(m!==null && m<3) risks.push({msg:'Critical onboarding period (< 3 months)', weight:2});
+
+    // 4. Salary below dept avg by 20%+
+    const dAvg=deptAvgSal[e.dept||'Unknown'];
+    if(dAvg && e.salary && e.salary < dAvg*0.8){
+      const diff=Math.round(((dAvg-e.salary)/dAvg)*100);
+      risks.push({msg:'Salary '+diff+'% below dept avg ('+fmt(Math.round(dAvg))+')', weight:2});
+    }
+
+    // 5. Same designation for 2+ years (no growth visible)
+    if(m && m>=24) risks.push({msg:'2+ years same designation — no visible growth', weight:2});
+
+    // 6. High poach-risk tenure band (2-4 years)
+    if(m && m>=24 && m<=48) risks.push({msg:'Peak poach-risk tenure band (2-4 yrs)', weight:1});
+
+    // 7. Dept attrition > 25%
+    const dTotal=totalByDept[e.dept||'Unknown']||1;
+    const dExits=deptExitMap[e.dept||'Unknown']||0;
+    if((dExits/dTotal)>=0.25) risks.push({msg:'Dept attrition '+Math.round((dExits/dTotal)*100)+'% — peer exits high', weight:2});
+
+    if(risks.length){
+      const score=risks.reduce((s,r)=>s+r.weight,0);
+      const level=score>=6?'High':score>=3?'Medium':'Low';
+      riskEmps.push({...e, risks, tenureM:m, score, level});
+    }
   });
+  riskEmps.sort((a,b)=>b.score-a.score);
+
+  const levelBadge=l=>l==='High'?'<span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:20px;font-weight:700;font-size:12px">High</span>':l==='Medium'?'<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:20px;font-weight:700;font-size:12px">Medium</span>':'<span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:20px;font-weight:700;font-size:12px">Low</span>';
+
   document.getElementById('tenure-risk-body').innerHTML=riskEmps.length?riskEmps.map(e=>`
-    <tr style="border-bottom:1px solid #f1f5f9;background:#fffbf0">
+    <tr style="border-bottom:1px solid #f1f5f9;background:${e.level==='High'?'#fff5f5':e.level==='Medium'?'#fffbf0':'#f0fff4'}">
       <td style="padding:8px 12px;font-weight:600">${e.name}</td>
       <td style="padding:8px 12px;color:#64748b">${e.dept||'-'}</td>
-      <td style="padding:8px 12px"><span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:20px;font-size:11px">${e.status}</span></td>
-      <td style="padding:8px 12px;text-align:center">${fmtTenure(e.tenureM)}</td>
-      <td style="padding:8px 12px;color:#b45309;font-size:12px">${e.risks.join(' | ')}</td>
-    </tr>`).join(''):'<tr><td colspan="5" style="padding:20px;text-align:center;color:#10b981;font-weight:600">No attrition risks detected</td></tr>';
+      <td style="padding:8px 12px"><span style="background:#e0e7ff;color:#3730a3;padding:2px 8px;border-radius:20px;font-size:11px">${e.status}</span></td>
+      <td style="padding:8px 12px;text-align:center;font-weight:600">${fmtTenure(e.tenureM)}</td>
+      <td style="padding:8px 12px;text-align:center">${levelBadge(e.level)}</td>
+      <td style="padding:8px 12px;font-size:12px;color:#475569">${e.risks.map(r=>'• '+r.msg).join('<br>')}</td>
+    </tr>`).join(''):'<tr><td colspan="6" style="padding:20px;text-align:center;color:#10b981;font-weight:600">No attrition risks detected</td></tr>';
 }
 
 function renderSalaryBandTab(){
