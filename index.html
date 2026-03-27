@@ -1156,7 +1156,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
       <!-- Month-wise -->
       <div class="card">
-        <div class="card-hdr" style="background:linear-gradient(135deg,#1e3a5f,#0ea5e9)">Month-wise Exits</div>
+        <div class="card-hdr" style="background:linear-gradient(135deg,#d97706,#fbbf24)">Month-wise Exits</div>
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:13px">
             <thead><tr>
@@ -1170,7 +1170,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       </div>
       <!-- Dept-wise -->
       <div class="card">
-        <div class="card-hdr" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">Department-wise Exits</div>
+        <div class="card-hdr" style="background:linear-gradient(135deg,#0f766e,#2dd4bf)">Department-wise Exits</div>
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:13px">
             <thead><tr>
@@ -1187,15 +1187,15 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
     <!-- Charts Row -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px">
       <div class="card">
-        <div class="card-hdr" style="background:linear-gradient(135deg,#1e3a5f,#0ea5e9)">Month-wise Exit Trend</div>
+        <div class="card-hdr" style="background:linear-gradient(135deg,#d97706,#fbbf24)">Month-wise Exit Trend</div>
         <div style="padding:16px"><canvas id="attrChartMonth" height="200"></canvas></div>
       </div>
       <div class="card">
-        <div class="card-hdr" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">Dept-wise Exits</div>
+        <div class="card-hdr" style="background:linear-gradient(135deg,#0f766e,#2dd4bf)">Dept-wise Exits</div>
         <div style="padding:16px"><canvas id="attrChartDept" height="200"></canvas></div>
       </div>
       <div class="card">
-        <div class="card-hdr" style="background:linear-gradient(135deg,#dc2626,#f87171)">Exit Reason Split</div>
+        <div class="card-hdr" style="background:linear-gradient(135deg,#7c3aed,#c084fc)">Exit Reason Split</div>
         <div style="padding:16px"><canvas id="attrChartReason" height="200"></canvas></div>
       </div>
     </div>
@@ -1203,7 +1203,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
     <!-- Reason + Type side by side -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
       <div class="card">
-        <div class="card-hdr" style="background:linear-gradient(135deg,#dc2626,#f87171)">Exit Reason</div>
+        <div class="card-hdr" style="background:linear-gradient(135deg,#be185d,#fb7185)">Exit Reason</div>
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:13px">
             <thead><tr>
@@ -1217,7 +1217,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
         </div>
       </div>
       <div class="card">
-        <div class="card-hdr" style="background:linear-gradient(135deg,#059669,#34d399)">Employee Type-wise Exits</div>
+        <div class="card-hdr" style="background:linear-gradient(135deg,#065f46,#10b981)">Employee Type-wise Exits</div>
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:13px">
             <thead><tr>
@@ -1233,7 +1233,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
 
     <!-- Detailed Exit List -->
     <div class="card">
-      <div id="attr-list-hdr" class="card-hdr" style="background:linear-gradient(135deg,#1e3a5f,#374151)">Exited Employees Detail</div>
+      <div id="attr-list-hdr" class="card-hdr" style="background:linear-gradient(135deg,#1e1b4b,#4338ca)">Exited Employees Detail</div>
       <div style="overflow-x:auto">
         <table style="width:100%;border-collapse:collapse;font-size:12px">
           <thead><tr>
@@ -1249,6 +1249,16 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
             <th style="background:#f8fafc;padding:8px 10px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">CTC</th>
           </tr></thead>
           <tbody id="attr-list-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Dept x Reason Cross Analysis -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-hdr" style="background:linear-gradient(135deg,#9a3412,#fb923c)">Department × Exit Reason Analysis</div>
+      <div style="padding:16px;overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead id="attr-dr-head"></thead>
+          <tbody id="attr-dr-body"></tbody>
         </table>
       </div>
     </div>
@@ -2998,6 +3008,33 @@ function renderAttritionTab(){
     },
     options:{responsive:true, plugins:{legend:{position:'bottom', labels:{font:{size:10}, boxWidth:12}}}}
   });
+
+  // Dept x Reason cross analysis
+  const drMap={};
+  exited.forEach(e=>{
+    const d=e.dept||'Unknown';
+    const r=e.exitReason||'Not Specified';
+    if(!drMap[d]) drMap[d]={};
+    drMap[d][r]=(drMap[d][r]||0)+1;
+  });
+  const drDepts=Object.keys(drMap).sort();
+  const drReasons=[...new Set(exited.map(e=>e.exitReason||'Not Specified'))].sort();
+  const thStyle='background:#f8fafc;padding:7px 10px;font-weight:700;color:var(--primary);border-bottom:2px solid var(--border);border-right:1px solid #e2e8f0;white-space:nowrap;';
+  const tdStyle='padding:7px 10px;text-align:center;border-bottom:1px solid #f1f5f9;border-right:1px solid #f1f5f9;';
+  document.getElementById('attr-dr-head').innerHTML=`<tr>
+    <th style="${thStyle}text-align:left;min-width:140px">Department</th>
+    <th style="${thStyle}text-align:center">Total</th>
+    ${drReasons.map(r=>`<th style="${thStyle}font-size:11px">${r}</th>`).join('')}
+  </tr>`;
+  document.getElementById('attr-dr-body').innerHTML=drDepts.map(d=>{
+    const row=drMap[d];
+    const total=Object.values(row).reduce((s,v)=>s+v,0);
+    return `<tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:7px 10px;font-weight:600;border-right:1px solid #e2e8f0">${d}</td>
+      <td style="${tdStyle}font-weight:700;color:#ef4444">${total}</td>
+      ${drReasons.map(r=>{const v=row[r]||0;return `<td style="${tdStyle}color:${v?'#1e293b':'#cbd5e1'}">${v||'-'}</td>`;}).join('')}
+    </tr>`;
+  }).join('');
 
   // Detail list
   const hdr=document.getElementById('attr-list-hdr');
