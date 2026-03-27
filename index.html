@@ -2937,7 +2937,7 @@ function renderMovementTab(){
   const opening = employees.filter(e=>{
     const d=parseDoj(e.doj);
     const dojOk = !d || d<month;
-    const notExitedBefore = !(e.exitDate && e.exitDate.substring(0,7)<month);
+    const notExitedBefore = !(e.exitDate && (parseDoj(e.exitDate)||e.exitDate).substring(0,7)<month);
     return dojOk && notExitedBefore;
   });
 
@@ -2945,7 +2945,7 @@ function renderMovementTab(){
   const joiners = employees.filter(e=>parseDoj(e.doj).substring(0,7)===month);
 
   // Exits = exitDate in this month
-  const exits = employees.filter(e=>e.exitDate && e.exitDate.substring(0,7)===month);
+  const exits = employees.filter(e=>{ const ed=parseDoj(e.exitDate); return ed && ed.substring(0,7)===month; });
 
   const closing = opening.length + joiners.length - exits.length;
 
@@ -3061,8 +3061,8 @@ function renderMovementTab(){
     <td style="padding:8px 10px">${e.exitReason||'-'}</td>
   </tr>`).join('') : '<tr><td colspan="5" class="empty-msg">No exits this month</td></tr>';
 
-  // All Exited Employees — filtered by selected month
-  const allExited = employees.filter(e=>e.exitDate && e.exitDate.substring(0,7)===month).sort((a,b)=>(b.exitDate||'').localeCompare(a.exitDate||''));
+  // All Exited Employees — filtered by selected month (parse exitDate to handle DD-Mon-YYYY format)
+  const allExited = employees.filter(e=>{ const ed=parseDoj(e.exitDate); return ed && ed.substring(0,7)===month; }).sort((a,b)=>(parseDoj(b.exitDate)||'').localeCompare(parseDoj(a.exitDate)||''));
   const aeHdr=document.getElementById('mv-all-exits-hdr');
   if(aeHdr) aeHdr.textContent='Exited Employees — '+fmtMonth(month)+' (Total: '+allExited.length+')';
   const aeBody=document.getElementById('mv-all-exits-body');
