@@ -306,6 +306,8 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       <button class="tab-btn" onclick="switchTab('rr',this)">&#128683; Role Transition</button>
       <button class="tab-btn" onclick="switchTab('movement',this)">&#128200; Headcount Movement</button>
       <button class="tab-btn" onclick="switchTab('attrition',this)">&#128683; Attrition Analysis</button>
+      <button class="tab-btn" onclick="switchTab('tenure',this)">&#128197; Tenure Analysis</button>
+      <button class="tab-btn" onclick="switchTab('salaryband',this)">&#128200; Salary Band</button>
     </div>
   </div>
 
@@ -1264,6 +1266,165 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
     </div>
   </div><!-- /tab-attrition -->
 
+
+  <!-- ════════════════ TAB: TENURE ANALYSIS ════════════════ -->
+  <div class="tab-content" id="tab-tenure">
+    <div class="sec-title">Tenure Analysis</div>
+    <!-- KPI Cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px" id="tenure-kpis"></div>
+    <!-- Dept tenure + Bucket distribution side by side -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#0369a1,#38bdf8)">Department-wise Tenure</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Department</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Count</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Avg Tenure</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Min</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Max</th>
+            </tr></thead>
+            <tbody id="tenure-dept-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#6d28d9,#a78bfa)">Tenure Distribution</div>
+        <div style="padding:16px"><canvas id="tenureDistChart" height="220"></canvas></div>
+      </div>
+    </div>
+    <!-- Milestones + Long Serving -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#065f46,#34d399)">Upcoming Milestones (Next 3 Months)</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Name</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Dept</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">DOJ</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Milestone</th>
+            </tr></thead>
+            <tbody id="tenure-milestone-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#92400e,#fcd34d)">Top 10 Longest Serving</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Name</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Dept</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">DOJ</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Tenure</th>
+            </tr></thead>
+            <tbody id="tenure-top-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Attrition Risk -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-hdr" style="background:linear-gradient(135deg,#991b1b,#f87171)">Attrition Risk Alerts</div>
+      <div style="padding:0 0 8px 0;overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr>
+            <th style="background:#fff7f7;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid #fecaca">Name</th>
+            <th style="background:#fff7f7;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid #fecaca">Dept</th>
+            <th style="background:#fff7f7;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid #fecaca">Status</th>
+            <th style="background:#fff7f7;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid #fecaca">Tenure</th>
+            <th style="background:#fff7f7;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid #fecaca">Risk Reason</th>
+          </tr></thead>
+          <tbody id="tenure-risk-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div><!-- /tab-tenure -->
+
+  <!-- ════════════════ TAB: SALARY BAND ════════════════ -->
+  <div class="tab-content" id="tab-salaryband">
+    <div class="sec-title">Salary Band Analysis</div>
+    <!-- KPI Row -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px" id="salband-kpis"></div>
+    <!-- Dept-wise bands + Type-wise bands -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#1e3a5f,#0ea5e9)">Department-wise Salary Band</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Department</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Count</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Min</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Avg</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Max</th>
+            </tr></thead>
+            <tbody id="salband-dept-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#065f46,#10b981)">Employee Type-wise Salary Band</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Type</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Count</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Min</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Avg</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Max</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Total Cost</th>
+            </tr></thead>
+            <tbody id="salband-type-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Salary Distribution Chart + Range Buckets -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#6d28d9,#c084fc)">Salary Range Distribution</div>
+        <div style="padding:16px"><canvas id="salDistChart" height="220"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#9a3412,#fb923c)">Salary Range Buckets</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Range</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Employees</th>
+              <th style="background:#f8fafc;padding:8px 12px;text-align:center;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">%</th>
+            </tr></thead>
+            <tbody id="salband-bucket-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Top earners + Below median -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#92400e,#fcd34d)">Top 10 Earners</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Name</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Dept</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Designation</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:right;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Salary</th>
+            </tr></thead>
+            <tbody id="salband-top-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="background:linear-gradient(135deg,#0f766e,#2dd4bf)">Department Cost % Share</div>
+        <div style="padding:16px"><canvas id="deptCostPieChart" height="220"></canvas></div>
+      </div>
+    </div>
+  </div><!-- /tab-salaryband -->
+
 </div><!-- /container -->
 
 <script>
@@ -2110,6 +2271,8 @@ function switchTab(name, btn){
     if(name==='rr')       renderRRTab();
     if(name==='movement')  renderMovementTab();
     if(name==='attrition') renderAttritionTab();
+    if(name==='tenure')    renderTenureTab();
+    if(name==='salaryband')renderSalaryBandTab();
   });
 }
 
@@ -3100,6 +3263,208 @@ function renderRRTab(){
     <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9">${e.doj||'-'}</td>
     <td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#0ea5e9">${e.email||'-'}</td>
   </tr>`).join('');
+}
+
+function renderTenureTab(){
+  const today = new Date();
+  const active = employees.filter(e=>e.status==='Active'||e.status==='RR');
+
+  function tenureMonths(doj){
+    const d = parseDoj(doj);
+    if(!d) return null;
+    const dt = new Date(d);
+    return (today.getFullYear()-dt.getFullYear())*12+(today.getMonth()-dt.getMonth());
+  }
+  function fmtTenure(m){
+    if(m===null||m===undefined) return '-';
+    const y=Math.floor(m/12), mo=m%12;
+    if(y===0) return mo+'m';
+    if(mo===0) return y+'y';
+    return y+'y '+mo+'m';
+  }
+
+  const withTenure = active.map(e=>({...e, tenureM: tenureMonths(e.doj)})).filter(e=>e.tenureM!==null);
+  const total = withTenure.length;
+  const avgM = total ? Math.round(withTenure.reduce((s,e)=>s+e.tenureM,0)/total) : 0;
+  const sorted = [...withTenure].sort((a,b)=>b.tenureM-a.tenureM);
+  const maxE = sorted[0];
+  const minE = sorted[sorted.length-1];
+  const freshCount = withTenure.filter(e=>e.tenureM<12).length;
+
+  document.getElementById('tenure-kpis').innerHTML=[
+    {label:'Avg Tenure',value:fmtTenure(avgM),color:'#0369a1'},
+    {label:'Longest Serving',value:maxE?maxE.name.split(' ')[0]+' ('+fmtTenure(maxE.tenureM)+')':'-',color:'#92400e'},
+    {label:'Newest Employee',value:minE?minE.name.split(' ')[0]+' ('+fmtTenure(minE.tenureM)+')':'-',color:'#065f46'},
+    {label:'< 1 Year Tenure',value:freshCount+' employees',color:'#7c3aed'},
+    {label:'> 2 Years Tenure',value:withTenure.filter(e=>e.tenureM>=24).length+' employees',color:'#be185d'},
+  ].map(k=>`<div class="card" style="padding:20px;text-align:center">
+    <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">${k.label}</div>
+    <div style="font-size:20px;font-weight:800;color:${k.color}">${k.value}</div>
+  </div>`).join('');
+
+  const byDept={};
+  withTenure.forEach(e=>{ const d=e.dept||'Unknown'; if(!byDept[d]) byDept[d]=[]; byDept[d].push(e.tenureM); });
+  document.getElementById('tenure-dept-body').innerHTML=Object.entries(byDept).sort((a,b)=>{
+    const aA=a[1].reduce((s,v)=>s+v,0)/a[1].length, bA=b[1].reduce((s,v)=>s+v,0)/b[1].length; return bA-aA;
+  }).map(([d,arr])=>{
+    const avg=Math.round(arr.reduce((s,v)=>s+v,0)/arr.length);
+    return `<tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:8px 12px;font-weight:600">${d}</td>
+      <td style="padding:8px 12px;text-align:center;color:#64748b">${arr.length}</td>
+      <td style="padding:8px 12px;text-align:center;font-weight:700;color:#0369a1">${fmtTenure(avg)}</td>
+      <td style="padding:8px 12px;text-align:center;color:#64748b">${fmtTenure(Math.min(...arr))}</td>
+      <td style="padding:8px 12px;text-align:center;color:#64748b">${fmtTenure(Math.max(...arr))}</td>
+    </tr>`;
+  }).join('');
+
+  const buckets=[{label:'< 6m',min:0,max:6},{label:'6-12m',min:6,max:12},{label:'1-2yr',min:12,max:24},{label:'2-3yr',min:24,max:36},{label:'3-5yr',min:36,max:60},{label:'5yr+',min:60,max:Infinity}];
+  const bktCounts=buckets.map(b=>withTenure.filter(e=>e.tenureM>=b.min&&e.tenureM<b.max).length);
+  if(window._tenureDistChart) window._tenureDistChart.destroy();
+  window._tenureDistChart=new Chart(document.getElementById('tenureDistChart'),{
+    type:'bar',
+    data:{labels:buckets.map(b=>b.label),datasets:[{label:'Employees',data:bktCounts,backgroundColor:['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c'],borderRadius:6}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+  });
+
+  const upcoming=[];
+  withTenure.forEach(e=>{
+    const doj=parseDoj(e.doj); if(!doj) return;
+    const dt=new Date(doj);
+    [1,2,3,4,5].forEach(yr=>{
+      const milestone=new Date(dt.getFullYear()+yr,dt.getMonth(),dt.getDate());
+      const diffDays=Math.round((milestone-today)/(1000*60*60*24));
+      if(diffDays>=0&&diffDays<=90) upcoming.push({...e,milestone:yr+'yr',diffDays});
+    });
+  });
+  upcoming.sort((a,b)=>a.diffDays-b.diffDays);
+  document.getElementById('tenure-milestone-body').innerHTML=upcoming.length?upcoming.map(e=>`
+    <tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:8px 12px;font-weight:600">${e.name}</td>
+      <td style="padding:8px 12px;color:#64748b">${e.dept||'-'}</td>
+      <td style="padding:8px 12px;text-align:center;color:#64748b">${e.doj||'-'}</td>
+      <td style="padding:8px 12px;text-align:center"><span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">${e.milestone}</span></td>
+    </tr>`).join(''):'<tr><td colspan="4" style="padding:20px;text-align:center;color:#94a3b8">No milestones in next 3 months</td></tr>';
+
+  document.getElementById('tenure-top-body').innerHTML=sorted.slice(0,10).map((e,i)=>`
+    <tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:8px 12px;font-weight:600">${i+1}. ${e.name}</td>
+      <td style="padding:8px 12px;color:#64748b">${e.dept||'-'}</td>
+      <td style="padding:8px 12px;text-align:center;color:#64748b">${e.doj||'-'}</td>
+      <td style="padding:8px 12px;text-align:center;font-weight:700;color:#92400e">${fmtTenure(e.tenureM)}</td>
+    </tr>`).join('');
+
+  const riskEmps=[];
+  employees.forEach(e=>{
+    const risks=[];
+    if(e.status==='RR') risks.push('On Role Transition (RR)');
+    if(e.status==='Active'){
+      const lastRev=revisions.filter(r=>String(r.empId)===String(e.id)||String(r.empId)===String(e.empCode));
+      const m=tenureMonths(e.doj);
+      if(!lastRev.length && m && m>=12) risks.push('No salary revision (tenure: '+fmtTenure(m)+')');
+      if(m && m<3) risks.push('New hire < 3 months');
+    }
+    if(risks.length) riskEmps.push({...e, risks, tenureM: tenureMonths(e.doj)});
+  });
+  document.getElementById('tenure-risk-body').innerHTML=riskEmps.length?riskEmps.map(e=>`
+    <tr style="border-bottom:1px solid #f1f5f9;background:#fffbf0">
+      <td style="padding:8px 12px;font-weight:600">${e.name}</td>
+      <td style="padding:8px 12px;color:#64748b">${e.dept||'-'}</td>
+      <td style="padding:8px 12px"><span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:20px;font-size:11px">${e.status}</span></td>
+      <td style="padding:8px 12px;text-align:center">${fmtTenure(e.tenureM)}</td>
+      <td style="padding:8px 12px;color:#b45309;font-size:12px">${e.risks.join(' | ')}</td>
+    </tr>`).join(''):'<tr><td colspan="5" style="padding:20px;text-align:center;color:#10b981;font-weight:600">No attrition risks detected</td></tr>';
+}
+
+function renderSalaryBandTab(){
+  const active=employees.filter(e=>e.status==='Active'&&(e.salary||0)>0);
+  const total=active.length;
+  if(!total){ document.getElementById('salband-kpis').innerHTML='<div style="padding:20px;color:#94a3b8">No active employees with salary data.</div>'; return; }
+
+  const salaries=[...active].map(e=>e.salary).sort((a,b)=>a-b);
+  const avg=Math.round(salaries.reduce((s,v)=>s+v,0)/total);
+  const median=salaries[Math.floor(total/2)];
+  const totalCost=salaries.reduce((s,v)=>s+v,0);
+
+  document.getElementById('salband-kpis').innerHTML=[
+    {label:'Min Salary',value:fmt(salaries[0]),color:'#0369a1'},
+    {label:'Average Salary',value:fmt(avg),color:'#065f46'},
+    {label:'Median Salary',value:fmt(median),color:'#7c3aed'},
+    {label:'Max Salary',value:fmt(salaries[salaries.length-1]),color:'#92400e'},
+    {label:'Total Active Cost',value:fmt(totalCost),color:'#be185d'},
+  ].map(k=>`<div class="card" style="padding:20px;text-align:center">
+    <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">${k.label}</div>
+    <div style="font-size:18px;font-weight:800;color:${k.color}">${k.value}</div>
+  </div>`).join('');
+
+  const byDept={};
+  active.forEach(e=>{ const d=e.dept||'Unknown'; if(!byDept[d]) byDept[d]=[]; byDept[d].push(e.salary); });
+  document.getElementById('salband-dept-body').innerHTML=Object.entries(byDept).sort((a,b)=>{
+    return (b[1].reduce((s,v)=>s+v,0)/b[1].length)-(a[1].reduce((s,v)=>s+v,0)/a[1].length);
+  }).map(([d,arr])=>{
+    const a=Math.round(arr.reduce((s,v)=>s+v,0)/arr.length);
+    return `<tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:8px 10px;font-weight:600">${d}</td>
+      <td style="padding:8px 10px;text-align:center;color:#64748b">${arr.length}</td>
+      <td style="padding:8px 10px;text-align:right;color:#64748b">${fmt(Math.min(...arr))}</td>
+      <td style="padding:8px 10px;text-align:right;font-weight:700;color:#0369a1">${fmt(a)}</td>
+      <td style="padding:8px 10px;text-align:right;color:#10b981;font-weight:600">${fmt(Math.max(...arr))}</td>
+    </tr>`;
+  }).join('');
+
+  const byType={};
+  active.forEach(e=>{ const t=normType(e.type)||'Unknown'; if(!byType[t]) byType[t]=[]; byType[t].push(e.salary); });
+  document.getElementById('salband-type-body').innerHTML=Object.entries(byType).sort((a,b)=>b[1].length-a[1].length).map(([t,arr])=>{
+    const a=Math.round(arr.reduce((s,v)=>s+v,0)/arr.length);
+    const tot=arr.reduce((s,v)=>s+v,0);
+    return `<tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:8px 12px;font-weight:600">${t}</td>
+      <td style="padding:8px 12px;text-align:center;color:#64748b">${arr.length}</td>
+      <td style="padding:8px 12px;text-align:right;color:#64748b">${fmt(Math.min(...arr))}</td>
+      <td style="padding:8px 12px;text-align:right;font-weight:700;color:#0369a1">${fmt(a)}</td>
+      <td style="padding:8px 12px;text-align:right;color:#10b981;font-weight:600">${fmt(Math.max(...arr))}</td>
+      <td style="padding:8px 12px;text-align:right;font-weight:700;color:#be185d">${fmt(tot)}</td>
+    </tr>`;
+  }).join('');
+
+  const buckets=[
+    {label:'< ₹30K',min:0,max:30000},
+    {label:'₹30K - 50K',min:30000,max:50000},
+    {label:'₹50K - 75K',min:50000,max:75000},
+    {label:'₹75K - 1L',min:75000,max:100000},
+    {label:'₹1L - 2L',min:100000,max:200000},
+    {label:'> ₹2L',min:200000,max:Infinity}
+  ];
+  const bktCounts=buckets.map(b=>active.filter(e=>e.salary>=b.min&&e.salary<b.max).length);
+  document.getElementById('salband-bucket-body').innerHTML=buckets.map((b,i)=>`
+    <tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:8px 12px;font-weight:600">${b.label}</td>
+      <td style="padding:8px 12px;text-align:center;font-weight:700;color:#6d28d9">${bktCounts[i]}</td>
+      <td style="padding:8px 12px;text-align:center;color:#64748b">${((bktCounts[i]/total)*100).toFixed(1)}%</td>
+    </tr>`).join('');
+
+  const COLORS=['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c'];
+  if(window._salDistChart) window._salDistChart.destroy();
+  window._salDistChart=new Chart(document.getElementById('salDistChart'),{
+    type:'doughnut',
+    data:{labels:buckets.map(b=>b.label),datasets:[{data:bktCounts,backgroundColor:COLORS,borderWidth:2}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:14}}}}
+  });
+
+  const deptCostArr=Object.entries(byDept).map(([d,arr])=>({d,cost:arr.reduce((s,v)=>s+v,0)})).sort((a,b)=>b.cost-a.cost);
+  if(window._deptCostPieChart) window._deptCostPieChart.destroy();
+  window._deptCostPieChart=new Chart(document.getElementById('deptCostPieChart'),{
+    type:'pie',
+    data:{labels:deptCostArr.map(x=>x.d),datasets:[{data:deptCostArr.map(x=>x.cost),backgroundColor:deptCostArr.map((_,i)=>COLORS[i%COLORS.length]),borderWidth:2}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}
+  });
+
+  document.getElementById('salband-top-body').innerHTML=[...active].sort((a,b)=>b.salary-a.salary).slice(0,10).map((e,i)=>`
+    <tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:8px 10px;font-weight:600">${i+1}. ${e.name}</td>
+      <td style="padding:8px 10px;color:#64748b">${e.dept||'-'}</td>
+      <td style="padding:8px 10px;color:#64748b">${e.desig||'-'}</td>
+      <td style="padding:8px 10px;text-align:right;font-weight:700;color:#92400e">${fmt(e.salary)}</td>
+    </tr>`).join('');
 }
 
 </script>
