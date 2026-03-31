@@ -308,6 +308,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       <button class="tab-btn" onclick="switchTab('attrition',this)">&#128683; Attrition Analysis</button>
       <button class="tab-btn" onclick="switchTab('tenure',this)">&#128197; Tenure Analysis</button>
       <button class="tab-btn" onclick="switchTab('salaryband',this)">&#128200; Salary Band</button>
+      <button class="tab-btn" onclick="switchTab('mthsummary',this)">&#128203; Monthly Summary</button>
     </div>
   </div>
 
@@ -1426,6 +1427,17 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
     </div>
   </div><!-- /tab-salaryband -->
 
+  <!-- ══ MONTHLY SUMMARY TAB ══ -->
+  <div class="tab-content" id="tab-mthsummary">
+    <div class="sec-title">Monthly Summary — FY 2026-27</div>
+    <div style="overflow-x:auto">
+      <table id="mth-summary-table" style="width:100%;border-collapse:collapse;font-size:13px;min-width:900px">
+        <thead id="mth-summary-head"></thead>
+        <tbody id="mth-summary-body"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div><!-- /container -->
 
 <script>
@@ -2273,7 +2285,8 @@ function switchTab(name, btn){
     if(name==='movement')  renderMovementTab();
     if(name==='attrition') renderAttritionTab();
     if(name==='tenure')    renderTenureTab();
-    if(name==='salaryband')renderSalaryBandTab();
+    if(name==='salaryband') renderSalaryBandTab();
+    if(name==='mthsummary') renderMthSummaryTab();
   });
 }
 
@@ -3543,6 +3556,97 @@ function renderSalaryBandTab(){
       <td style="padding:8px 10px;color:#64748b">${e.desig||'-'}</td>
       <td style="padding:8px 10px;text-align:right;font-weight:700;color:#92400e">${fmt(e.salary)}</td>
     </tr>`).join('');
+}
+
+// ── MONTHLY SUMMARY ────────────────────────────────────────────────
+function renderMthSummaryTab(){
+  // FY months Apr-26 to Mar-27
+  const MONTHS = ['Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26','Nov-26','Dec-26','Jan-27','Feb-27','Mar-27'];
+  const MONTH_KEYS = ['2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11','2026-12','2027-01','2027-02','2027-03'];
+
+  function isFullTime(e){ const t=(e.empType||'').toLowerCase(); return t.includes('full'); }
+  function isConsultant(e){ const t=(e.empType||'').toLowerCase(); return t.includes('consult')||t.includes('contract'); }
+
+  function calcSection(filterFn){
+    const rows = { opening:[], joined:[], resigned:[], closing:[], attrition:[] };
+    MONTH_KEYS.forEach((mKey, i) => {
+      const active = employees.filter(e => filterFn(e) && isActiveInMonth(e, mKey));
+      const joined = employees.filter(e => filterFn(e) && (parseDoj(e.joiningDate)||'').substring(0,7) === mKey);
+      const resigned = employees.filter(e => {
+        if(!filterFn(e)) return false;
+        const ed = parseDoj(e.exitDate||e.separationDate||e.lwd);
+        return ed && ed.substring(0,7) === mKey;
+      });
+      // Opening = previous month closing or initial
+      const prevKey = i === 0 ? null : MONTH_KEYS[i-1];
+      const opening = prevKey
+        ? employees.filter(e => filterFn(e) && isActiveInMonth(e, prevKey)).length
+        : employees.filter(e => filterFn(e) && isActiveInMonth(e, mKey)).length - joined.length + resigned.length;
+
+      const closing = active.length;
+      const attrPct = opening > 0 ? ((resigned.length / opening)*100).toFixed(1)+'%' : '0%';
+
+      rows.opening.push(opening);
+      rows.joined.push(joined.length);
+      rows.resigned.push(resigned.length);
+      rows.closing.push(closing);
+      rows.attrition.push(attrPct);
+    });
+    return rows;
+  }
+
+  function isActiveInMonth(e, mKey){
+    const doj = parseDoj(e.joiningDate);
+    if(!doj || doj.substring(0,7) > mKey) return false;
+    const lwd = parseDoj(e.exitDate||e.separationDate||e.lwd);
+    if(lwd && lwd.substring(0,7) < mKey) return false;
+    return true;
+  }
+
+  const ft = calcSection(isFullTime);
+  const cs = calcSection(isConsultant);
+  const total = {
+    opening:  MONTH_KEYS.map((_,i) => ft.opening[i] + cs.opening[i]),
+    joined:   MONTH_KEYS.map((_,i) => ft.joined[i]  + cs.joined[i]),
+    resigned: MONTH_KEYS.map((_,i) => ft.resigned[i] + cs.resigned[i]),
+    closing:  MONTH_KEYS.map((_,i) => ft.closing[i]  + cs.closing[i]),
+    attrition:MONTH_KEYS.map((_,i) => {
+      const op = ft.opening[i]+cs.opening[i];
+      const rs = ft.resigned[i]+cs.resigned[i];
+      return op>0 ? ((rs/op)*100).toFixed(1)+'%' : '0%';
+    })
+  };
+
+  // Build table
+  const thStyle = 'padding:8px 12px;font-weight:700;font-size:12px;white-space:nowrap;text-align:center;border:1px solid #e2e8f0';
+  const tdStyle = (val, bold, color) => `style="padding:7px 12px;text-align:center;border:1px solid #f1f5f9;${bold?'font-weight:700;':''}${color?'color:'+color+';':''}"`;
+
+  const headerRow = `<tr>
+    <th style="${thStyle};text-align:left;background:#1e3a5f;color:#fff;min-width:160px">Metric</th>
+    ${MONTHS.map(m=>`<th style="${thStyle};background:#1e3a5f;color:#fff">${m}</th>`).join('')}
+  </tr>`;
+
+  function buildRows(data, bgColor, sectionLabel, labelColor){
+    const rowDefs = [
+      {key:'opening',  label:'Opening Headcount', bold:true,  color:'#1e293b'},
+      {key:'joined',   label:'Joined',             bold:false, color:'#065f46'},
+      {key:'resigned', label:'Resigned',           bold:false, color:'#991b1b'},
+      {key:'closing',  label:'Closing Headcount',  bold:true,  color:'#1e293b'},
+      {key:'attrition',label:'Attrition',          bold:true,  color:'#dc2626'},
+    ];
+    const sectionRow = `<tr><td colspan="${MONTHS.length+1}" style="padding:8px 12px;font-weight:800;font-size:13px;background:${bgColor};color:${labelColor};border:1px solid #e2e8f0;letter-spacing:.5px">${sectionLabel}</td></tr>`;
+    const dataRows = rowDefs.map(r=>`<tr>
+      <td style="padding:7px 12px;font-weight:${r.bold?'700':'500'};font-size:13px;border:1px solid #f1f5f9;color:${r.color};background:#fafafa">${r.label}</td>
+      ${data[r.key].map(v=>`<td ${tdStyle(v, r.bold, r.key==='attrition'?'#dc2626':r.key==='joined'?'#065f46':r.key==='resigned'?'#991b1b':'')}>${v||0}</td>`).join('')}
+    </tr>`).join('');
+    return sectionRow + dataRows;
+  }
+
+  document.getElementById('mth-summary-head').innerHTML = headerRow;
+  document.getElementById('mth-summary-body').innerHTML =
+    buildRows(ft,    '#dbeafe', '🔵 Full Time',             '#1d4ed8') +
+    buildRows(cs,    '#fef9c3', '🟡 Consultant',            '#92400e') +
+    buildRows(total, '#dcfce7', '🟢 Total Full Time + Consultant', '#065f46');
 }
 
 </script>
