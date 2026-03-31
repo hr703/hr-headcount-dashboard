@@ -3570,20 +3570,25 @@ function renderMthSummaryTab(){
   function calcSection(filterFn){
     const rows = { opening:[], joined:[], resigned:[], closing:[], attrition:[] };
     MONTH_KEYS.forEach((mKey, i) => {
-      const active = employees.filter(e => filterFn(e) && isActiveInMonth(e, mKey));
+      // Joined this month
       const joined = employees.filter(e => filterFn(e) && (parseDoj(e.joiningDate)||'').substring(0,7) === mKey);
+      // Resigned this month
       const resigned = employees.filter(e => {
         if(!filterFn(e)) return false;
         const ed = parseDoj(e.exitDate||e.separationDate||e.lwd);
         return ed && ed.substring(0,7) === mKey;
       });
-      // Opening = previous month closing or initial
-      const prevKey = i === 0 ? null : MONTH_KEYS[i-1];
-      const opening = prevKey
-        ? employees.filter(e => filterFn(e) && isActiveInMonth(e, prevKey)).length
-        : employees.filter(e => filterFn(e) && isActiveInMonth(e, mKey)).length - joined.length + resigned.length;
-
-      const closing = active.length;
+      // Opening = active at START of month (joined BEFORE this month, not exited BEFORE this month)
+      const opening = employees.filter(e => {
+        if(!filterFn(e)) return false;
+        const doj = parseDoj(e.joiningDate);
+        if(!doj || doj.substring(0,7) >= mKey) return false;
+        const lwd = parseDoj(e.exitDate||e.separationDate||e.lwd);
+        if(lwd && lwd.substring(0,7) < mKey) return false;
+        return true;
+      }).length;
+      // Closing = Opening + Joined - Resigned
+      const closing = opening + joined.length - resigned.length;
       const attrPct = opening > 0 ? ((resigned.length / opening)*100).toFixed(1)+'%' : '0%';
 
       rows.opening.push(opening);
