@@ -1430,6 +1430,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
   <!-- ══ MONTHLY SUMMARY TAB ══ -->
   <div class="tab-content" id="tab-mthsummary">
     <div class="sec-title">Monthly Summary — FY 2026-27</div>
+    <div id="mth-debug" style="padding:4px 12px;background:#f8f8f8;border-radius:6px;margin-bottom:8px"></div>
     <div style="overflow-x:auto">
       <table id="mth-summary-table" style="width:100%;border-collapse:collapse;font-size:13px;min-width:900px">
         <thead id="mth-summary-head"></thead>
@@ -3564,18 +3565,34 @@ function renderMthSummaryTab(){
   const MONTHS = ['Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26','Nov-26','Dec-26','Jan-27','Feb-27','Mar-27'];
   const MONTH_KEYS = ['2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11','2026-12','2027-01','2027-02','2027-03'];
 
-  function isFullTime(e){ const t=(e.empType||'').toLowerCase(); return t.includes('full'); }
-  function isConsultant(e){ const t=(e.empType||'').toLowerCase(); return t.includes('consult')||t.includes('contract'); }
+  // Debug: show employee count
+  const dbgEl = document.getElementById('mth-debug');
+  if(dbgEl){
+    const sampleE = employees.length>0 ? employees[0] : {};
+    const sampleType = sampleE.type || sampleE.empType || 'N/A';
+    const sampleDoj  = sampleE.doj  || sampleE.joiningDate || 'N/A';
+    const sampleStat = sampleE.status || 'N/A';
+    const ftCount = employees.filter(e=> (e.type||e.empType||'').toLowerCase().includes('full') && (e.status||'').toLowerCase().includes('active')).length;
+    const csCount = employees.filter(e=>{ const t=(e.type||e.empType||'').toLowerCase(); return (t.includes('consult')||t.includes('contract')) && (e.status||'').toLowerCase().includes('active'); }).length;
+    dbgEl.innerHTML = `<small style="color:#555;font-size:11px">🔍 Debug — Total: ${employees.length} | FT Active: ${ftCount} | CS Active: ${csCount} | Sample type: "${sampleType}" | Sample doj: "${sampleDoj}" | Sample status: "${sampleStat}"</small>`;
+  }
+
+  // Support both old (joiningDate/empType) and new (doj/type) field names
+  function getType(e){ return (e.type || e.empType || ''); }
+  function getDoj(e){ return (e.doj || e.joiningDate || ''); }
+  function getLwd(e){ return (e.lwd || e.separationDate || e.exitDate || ''); }
+  function isFullTime(e){ const t=getType(e).toLowerCase(); return t.includes('full'); }
+  function isConsultant(e){ const t=getType(e).toLowerCase(); return t.includes('consult')||t.includes('contract'); }
 
   function calcSection(filterFn){
     const rows = { opening:[], joined:[], resigned:[], closing:[], attrition:[] };
     MONTH_KEYS.forEach((mKey, i) => {
       // Joined this month
-      const joined = employees.filter(e => filterFn(e) && (parseDoj(e.joiningDate)||'').substring(0,7) === mKey);
+      const joined = employees.filter(e => filterFn(e) && (parseDoj(getDoj(e))||'').substring(0,7) === mKey);
       // Resigned this month
       const resigned = employees.filter(e => {
         if(!filterFn(e)) return false;
-        const ed = parseDoj(e.exitDate||e.separationDate||e.lwd);
+        const ed = parseDoj(getLwd(e));
         return ed && ed.substring(0,7) === mKey;
       });
       // Opening = for Apr (first month): Active status employees
@@ -3597,9 +3614,9 @@ function renderMthSummaryTab(){
   }
 
   function isActiveInMonth(e, mKey){
-    const doj = parseDoj(e.joiningDate);
+    const doj = parseDoj(getDoj(e));
     if(!doj || doj.substring(0,7) > mKey) return false;
-    const lwd = parseDoj(e.exitDate||e.separationDate||e.lwd);
+    const lwd = parseDoj(getLwd(e));
     if(lwd && lwd.substring(0,7) < mKey) return false;
     return true;
   }
