@@ -942,6 +942,26 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       </div>
     </div>
 
+    <!-- Redundancy / Restructuring Section -->
+    <div class="panel" style="margin-top:20px;border:1.5px solid #fca5a5">
+      <div class="panel-hdr" style="background:#7f1d1d;color:#fff">&#9888; Redundancy / Restructuring — Department-wise Cost Summary</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr style="background:#fee2e2;color:#991b1b">
+              <th style="padding:10px;text-align:left;border-bottom:2px solid #fca5a5">Department</th>
+              <th style="padding:10px;text-align:center;border-bottom:2px solid #fca5a5">Employees</th>
+              <th style="padding:10px;text-align:left;border-bottom:2px solid #fca5a5">Names</th>
+              <th style="padding:10px;text-align:right;border-bottom:2px solid #fca5a5">Monthly CTC (&#8377;)</th>
+              <th style="padding:10px;text-align:right;border-bottom:2px solid #fca5a5">Annual CTC (&#8377;)</th>
+            </tr>
+          </thead>
+          <tbody id="rrRedundancyBody"></tbody>
+          <tfoot id="rrRedundancyFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+
     <div class="panel" style="margin-top:20px">
       <div class="panel-hdr">&#128683; RR Employee List</div>
       <div style="overflow-x:auto">
@@ -3275,6 +3295,39 @@ function renderRRTab(){
     const totCost=rrEmps.reduce((s,e)=>s+(e.salary||0),0);
     tfoot.innerHTML=`<tr style="background:#fee2e2;font-weight:800"><td style="padding:10px 12px;color:#991b1b">TOTAL</td><td style="padding:10px 12px;text-align:center;color:#991b1b">${totCount}</td><td style="padding:10px 12px;text-align:center;color:#991b1b">${((totCount/Math.max(employees.length,1))*100).toFixed(1)}%</td><td style="padding:10px 12px;text-align:right;color:#991b1b">&#8377;${fmt(totCost)}</td></tr>`;
   }
+  // Redundancy / Restructuring section
+  const redEmps = employees.filter(e => (e.exitSubReason||'').toLowerCase().includes('redundancy') || (e.exitSubReason||'').toLowerCase().includes('restructuring'));
+  const redDepts = {};
+  redEmps.forEach(e=>{
+    if(!redDepts[e.dept]) redDepts[e.dept]={count:0,cost:0,names:[]};
+    redDepts[e.dept].count++;
+    redDepts[e.dept].cost+=(e.salary||0);
+    redDepts[e.dept].names.push(e.name);
+  });
+  const redBody=document.getElementById('rrRedundancyBody');
+  const redFoot=document.getElementById('rrRedundancyFoot');
+  if(!Object.keys(redDepts).length){
+    redBody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:16px;color:#94a3b8">No Redundancy / Restructuring exits found.</td></tr>';
+    redFoot.innerHTML='';
+  } else {
+    redBody.innerHTML=Object.entries(redDepts).sort((a,b)=>b[1].count-a[1].count).map(([dept,v],i)=>`
+      <tr style="background:${i%2===0?'#fff':'#fff7f7'}">
+        <td style="padding:9px 12px;border-bottom:1px solid #fee2e2;font-weight:600;color:#1e3a5f">${dept}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #fee2e2;text-align:center"><span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:20px;font-weight:700">${v.count}</span></td>
+        <td style="padding:9px 12px;border-bottom:1px solid #fee2e2;color:#475569;font-size:12px">${v.names.join(', ')}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #fee2e2;text-align:right;font-weight:600">&#8377;${fmt(v.cost)}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #fee2e2;text-align:right;color:#64748b">&#8377;${fmt(v.cost*12)}</td>
+      </tr>`).join('');
+    const totRedCost=redEmps.reduce((s,e)=>s+(e.salary||0),0);
+    redFoot.innerHTML=`<tr style="background:#fee2e2;font-weight:800">
+      <td style="padding:10px 12px;color:#7f1d1d">TOTAL</td>
+      <td style="padding:10px 12px;text-align:center;color:#7f1d1d">${redEmps.length}</td>
+      <td style="padding:10px 12px;color:#7f1d1d">—</td>
+      <td style="padding:10px 12px;text-align:right;color:#7f1d1d">&#8377;${fmt(totRedCost)}</td>
+      <td style="padding:10px 12px;text-align:right;color:#7f1d1d">&#8377;${fmt(totRedCost*12)}</td>
+    </tr>`;
+  }
+
   const listBody=document.getElementById('rrListBody');
   if(!rrEmps.length){ listBody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:20px;color:#94a3b8">No RR employees found.</td></tr>'; return; }
   listBody.innerHTML=rrEmps.map((e,i)=>`<tr style="background:${i%2===0?'#fff':'#fff7f7'}">
