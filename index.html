@@ -576,10 +576,10 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
         <div class="form-sec">Job Details</div>
         <div class="form-row-2">
           <div class="form-group"><label>Department *</label><select id="f-dept"><option value="">-- Select --</option></select></div>
-          <div class="form-group"><label>Designation</label><input type="text" id="f-desig" placeholder="Sr. Engineer"/></div>
+          <div class="form-group"><label>Designation</label><select id="f-desig"><option value="">-- Select --</option></select></div>
         </div>
         <div class="form-row-2">
-          <div class="form-group"><label>Manager</label><input type="text" id="f-manager" placeholder="Reporting manager"/></div>
+          <div class="form-group"><label>Manager</label><select id="f-manager"><option value="">-- Select --</option></select></div>
           <div class="form-group"><label>Location</label><input type="text" id="f-location" placeholder="Mumbai"/></div>
         </div>
         <div class="form-row-2">
@@ -1532,6 +1532,12 @@ function renderDeptTags(){
 function populateDeptDropdowns(){
   document.getElementById('f-dept').innerHTML='<option value="">-- Select --</option>'+departments.map(d=>`<option>${d}</option>`).join('');
   document.getElementById('flt-dept').innerHTML='<option value="">All Departments</option>'+departments.map(d=>`<option>${d}</option>`).join('');
+  // Designation dropdown - unique designations from employees
+  const desigs=[...new Set(employees.map(e=>e.desig||'').filter(Boolean))].sort();
+  document.getElementById('f-desig').innerHTML='<option value="">-- Select --</option>'+desigs.map(d=>`<option>${d}</option>`).join('');
+  // Manager dropdown - active employees
+  const mgrs=employees.filter(e=>e.status==='Active'||e.status==='Yet to Join').sort((a,b)=>a.name.localeCompare(b.name));
+  document.getElementById('f-manager').innerHTML='<option value="">-- Select --</option>'+mgrs.map(e=>`<option value="${e.name} (${e.id})">${e.name} — ${e.dept}</option>`).join('');
 }
 
 // ================================================================
