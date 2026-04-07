@@ -673,13 +673,14 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
         <thead>
           <tr>
             <th style="width:36px;text-align:center"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"/></th>
-            <th>Emp ID</th><th>Name</th><th>Gender</th><th>Type</th>
+            <th>Emp Code</th><th>Name</th><th>Gender</th><th>Type</th>
             <th>Department</th><th>Designation</th><th>Manager</th><th>Location</th>
             <th>Status</th><th class="salary-col">Monthly CTC (&#8377;)</th><th>DOJ</th>
+            <th>DOL</th><th>Exit Reason</th><th>Sub Reason</th>
             <th>Mobile</th><th>Email</th><th>Actions</th>
           </tr>
         </thead>
-        <tbody id="empBody"><tr><td colspan="15" class="empty-msg">No employees added yet.</td></tr></tbody>
+        <tbody id="empBody"><tr><td colspan="18" class="empty-msg">No employees added yet.</td></tr></tbody>
         <tfoot id="empTableFoot"></tfoot>
       </table>
     </div>
@@ -2017,7 +2018,7 @@ function renderEmpTable(){
   document.getElementById('selectAll').checked=filtered.length>0&&filtered.every(e=>selectedIds.has(e.id));
   updateBulkBar();
   const tbody=document.getElementById('empBody');
-  if(!filtered.length){ tbody.innerHTML=`<tr><td colspan="15" class="empty-msg">No matching employees found.</td></tr>`; document.getElementById('empTableFoot').innerHTML=''; return; }
+  if(!filtered.length){ tbody.innerHTML=`<tr><td colspan="18" class="empty-msg">No matching employees found.</td></tr>`; document.getElementById('empTableFoot').innerHTML=''; return; }
   const badge={'Active':'<span class="badge b-active">Active</span>','Serving Notice':'<span class="badge b-notice">Serving Notice</span>','Yet to Join':'<span class="badge b-joining">Yet to Join</span>','RR':'<span class="badge b-rr">Role Transition</span>','Exited':'<span class="badge" style="background:#fee2e2;color:#991b1b;">Exited</span>'};
   const colors=['#1e3a5f','#10b981','#f59e0b','#8b5cf6','#0ea5e9','#ef4444','#ec4899','#14b8a6','#f97316','#6366f1'];
   tbody.innerHTML=filtered.map((e,i)=>{
@@ -2031,7 +2032,11 @@ function renderEmpTable(){
       <td>${e.dept}</td><td>${e.desig||'-'}</td><td>${e.manager||'-'}</td><td>${e.location||'-'}</td>
       <td>${badge[e.status]||e.status}</td>
       <td class="salary-col" style="font-weight:600">${fmt(e.salary||0)}</td>
-      <td>${e.doj||'-'}</td><td>${e.mobile||'-'}</td><td>-</td>
+      <td>${e.doj||'-'}</td>
+      <td style="color:${e.lwd?'#dc2626':'#94a3b8'}">${e.lwd||'-'}</td>
+      <td>${e.exitReason||'-'}</td>
+      <td>${e.exitSubReason||'-'}</td>
+      <td>${e.mobile||'-'}</td><td>${e.email||'-'}</td>
       <td><div class="actions">
         <button class="btn btn-blue btn-sm" onclick="editEmployeeByIdx(${employees.indexOf(e)})">Edit</button>
         <button class="btn btn-red  btn-sm" onclick="deleteEmployeeByIdx(${employees.indexOf(e)})">Del</button>
@@ -2043,7 +2048,7 @@ function renderEmpTable(){
   document.getElementById('empTableFoot').innerHTML=`<tr style="background:#f1f5f9;font-weight:800;font-size:12px;color:var(--primary)">
     <td colspan="10" style="padding:9px 12px;text-align:right">Total (${filtered.length} employees):</td>
     <td class="salary-col" style="padding:9px 12px;color:var(--green)">${fmt(totalCost)}/mo &nbsp;|&nbsp; ${fmt(annualCost)}/yr</td>
-    <td colspan="4"></td>
+    <td colspan="7"></td>
   </tr>`;
 }
 
@@ -2180,8 +2185,8 @@ function renderCharts(){
 // ================================================================
 // EXPORT / IMPORT
 // ================================================================
-const CSV_KEYS=['id','name','gender','type','dept','desig','manager','location','status','salary','doj','lwd','mobile','email'];
-const CSV_HDRS=['Employee Code','Name','Gender','Type','Department','Designation','Manager','Location','Status','Monthly CTC','Date of Joining','Last Working Date','Mobile','Email'];
+const CSV_KEYS=['id','name','gender','type','dept','desig','manager','location','status','salary','doj','lwd','exitReason','exitSubReason','mobile','email'];
+const CSV_HDRS=['Employee Code','Name','Gender','Type','Department','Designation','Manager','Location','Status','Monthly CTC','Date of Joining','Last Working Date','Exit Reason','Exit Sub Reason','Mobile','Email'];
 
 function exportCSV(){
   if(!employees.length){ toast('No data','#ef4444'); return; }
