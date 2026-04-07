@@ -2140,8 +2140,8 @@ function renderCharts(){
 // ================================================================
 // EXPORT / IMPORT
 // ================================================================
-const CSV_KEYS=['id','name','gender','type','dept','desig','manager','location','status','salary','doj','mobile','email'];
-const CSV_HDRS=['Employee Code','Name','Gender','Type','Department','Designation','Manager','Location','Status','Monthly CTC','Date of Joining','Mobile','Email'];
+const CSV_KEYS=['id','name','gender','type','dept','desig','manager','location','status','salary','doj','lwd','mobile','email'];
+const CSV_HDRS=['Employee Code','Name','Gender','Type','Department','Designation','Manager','Location','Status','Monthly CTC','Date of Joining','Last Working Date','Mobile','Email'];
 
 function exportCSV(){
   if(!employees.length){ toast('No data','#ef4444'); return; }
