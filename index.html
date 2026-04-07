@@ -2318,8 +2318,8 @@ function importExcel(ev){
         const id=col(row,['employee code','emp code','employee id','emp id','id','empcode']);
         const name=col(row,['employee name','name','full name']);
         if(!id||!name){ skipped++; return; }
-        const rawDoj=col(row,['date of joining','joining date','doj']);
-        const rawLwd=col(row,['last working date','lwd','exit date','separation date','date of exit']);
+        const rawDoj=col(row,['joining date','date of joining','doj']);
+        const rawLwd=col(row,['lwd','last working date','seprate date','separate date','exit date','separation date','date of exit']);
         const dept=col(row,['department','dept']);
         if(dept) newDepts.add(dept);
         const rec={
@@ -2327,13 +2327,16 @@ function importExcel(ev){
           gender:col(row,['gender']),
           type:mapType(col(row,['employee type','type','emp type'])),
           dept,
+          grade:col(row,['grade']),
           desig:col(row,['designation','desig','job title']),
-          manager:col(row,['manager','reporting manager','manager name']),
+          manager:col(row,['reporting manager','manager','manager name']),
           location:col(row,['location','work location','office location']),
-          status:mapStatus(col(row,['status','employee status','emp status'])),
-          salary:parseFloat(col(row,['monthly ctc','ctc','salary','gross salary'])||'0')||0,
+          status:mapStatus(col(row,['employee status','status','emp status'])),
+          salary:parseFloat(col(row,['monthly salary','monthly ctc','ctc','salary','gross salary'])||'0')||0,
           doj:parseDoj(rawDoj)||rawDoj,
           lwd:parseDoj(rawLwd)||rawLwd,
+          exitReason:col(row,['reason','exit reason','reason of leaving']),
+          exitSubReason:col(row,['sub reason','exit sub reason','sub reason of leaving']),
           mobile:col(row,['mobile','phone','contact number','mobile number']),
           email:col(row,['email','email id','official email']),
           dob:col(row,['date of birth','dob','birth date']),
