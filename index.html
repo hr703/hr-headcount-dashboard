@@ -587,9 +587,26 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
         </div>
         <div class="form-row-2">
           <div class="form-group"><label>Status</label>
-            <select id="f-status"><option value="Active">Active</option><option value="Serving Notice">Serving Notice</option><option value="Yet to Join">Yet to Join</option><option value="RR">RR</option><option value="Exited">Exited</option></select>
+            <select id="f-status" onchange="toggleExitFieldsForm()" ><option value="Active">Active</option><option value="Serving Notice">Serving Notice</option><option value="Yet to Join">Yet to Join</option><option value="RR">RR</option><option value="Exited">Exited</option></select>
           </div>
           <div class="form-group"><label>Date of Joining</label><input type="date" id="f-doj"/></div>
+        </div>
+        <div id="f-exit-wrap" style="display:none">
+          <div class="form-sec">Exit Details</div>
+          <div class="form-row-2">
+            <div class="form-group"><label>Last Working Date</label><input type="date" id="f-lwd"/></div>
+            <div class="form-group"><label>Exit Reason</label>
+              <select id="f-exit-reason" onchange="updateExitSubReasonForm()">
+                <option value="">-- Select Reason --</option>
+                <option>Resignation</option><option>Termination</option><option>End of Contract</option>
+                <option>Retirement</option><option>Absconding</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div id="f-exit-subreason-wrap" style="display:none" class="form-group">
+            <label>Sub Reason</label>
+            <select id="f-exit-subreason"><option value="">-- Select Sub Reason --</option></select>
+          </div>
         </div>
         <div class="form-sec">Contact &amp; Compensation</div>
         <div class="form-row-2">
@@ -1120,8 +1137,9 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
               <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Department</th>
               <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Exit Date</th>
               <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Reason</th>
+              <th style="background:#f8fafc;padding:8px 10px;text-align:left;color:var(--primary);font-weight:700;border-bottom:2px solid var(--border)">Sub Reason</th>
             </tr></thead>
-            <tbody id="mv-exits-body"><tr><td colspan="5" class="empty-msg">No exits</td></tr></tbody>
+            <tbody id="mv-exits-body"><tr><td colspan="6" class="empty-msg">No exits</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1563,6 +1581,9 @@ function saveEmployee(){
     location:document.getElementById('f-location').value.trim(),
     mobile:  document.getElementById('f-mobile').value.trim(),
     email:   document.getElementById('f-email').value.trim(),
+    lwd:     document.getElementById('f-lwd').value,
+    exitReason:    document.getElementById('f-exit-reason').value,
+    exitSubReason: document.getElementById('f-exit-subreason').value,
   };
   const editId=document.getElementById('editId').value;
   if(editId){
@@ -1623,6 +1644,18 @@ const EXIT_SUB_REASONS = {
   'Absconding':       ['No Notice Given','Unreachable','Abandoned Role','Other'],
   'Other':            ['Medical / Disability','Death','Visa / Immigration Issue','Redundancy / Restructuring','Performance Issue','Other']
 };
+function toggleExitFieldsForm(){
+  const status = document.getElementById('f-status').value;
+  document.getElementById('f-exit-wrap').style.display = (status==='Exited'||status==='Serving Notice') ? 'block' : 'none';
+}
+function updateExitSubReasonForm(){
+  const reason = document.getElementById('f-exit-reason').value;
+  const wrap   = document.getElementById('f-exit-subreason-wrap');
+  const sel    = document.getElementById('f-exit-subreason');
+  const subs   = EXIT_SUB_REASONS[reason];
+  if(subs){ sel.innerHTML='<option value="">-- Select Sub Reason --</option>'+subs.map(s=>`<option>${s}</option>`).join(''); wrap.style.display='block'; }
+  else { wrap.style.display='none'; sel.value=''; }
+}
 function updateExitSubReason(){
   const reason = document.getElementById('em-exit-reason').value;
   const wrap   = document.getElementById('exit-subreason-wrap');
@@ -1703,11 +1736,15 @@ function deleteEmployee(empId){
 }
 function cancelEdit(){ clearForm(); }
 function clearForm(){
-  ['f-id','f-name','f-desig','f-salary','f-doj','f-manager','f-location','f-mobile','f-email'].forEach(id=>document.getElementById(id).value='');
+  ['f-id','f-name','f-desig','f-salary','f-doj','f-manager','f-location','f-mobile','f-email','f-lwd'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-dept').value='';
   document.getElementById('f-status').value='Active';
   document.getElementById('f-gender').value='';
   document.getElementById('f-type').value='';
+  document.getElementById('f-exit-reason').value='';
+  document.getElementById('f-exit-subreason').value='';
+  document.getElementById('f-exit-wrap').style.display='none';
+  document.getElementById('f-exit-subreason-wrap').style.display='none';
   document.getElementById('editId').value='';
   document.getElementById('formTitle').textContent='Add Employee';
   document.getElementById('cancelEdit').style.display='none';
@@ -3199,9 +3236,10 @@ function renderMovementTab(){
     <td style="padding:8px 10px;font-weight:700;color:var(--primary)">${e.empCode||e.id}</td>
     <td style="padding:8px 10px">${e.name}</td>
     <td style="padding:8px 10px">${e.dept}</td>
-    <td style="padding:8px 10px">${e.exitDate||'-'}</td>
+    <td style="padding:8px 10px">${e.exitDate||e.lwd||'-'}</td>
     <td style="padding:8px 10px">${e.exitReason||'-'}</td>
-  </tr>`).join('') : '<tr><td colspan="5" class="empty-msg">No exits this month</td></tr>';
+    <td style="padding:8px 10px">${e.exitSubReason||'-'}</td>
+  </tr>`).join('') : '<tr><td colspan="6" class="empty-msg">No exits this month</td></tr>';
 
   // All Exited Employees — filtered by selected month (parse exitDate to handle DD-Mon-YYYY format)
   const allExited = employees.filter(e=>{ const ed=parseDoj(e.exitDate); return ed && ed.substring(0,7)===month; }).sort((a,b)=>(parseDoj(b.exitDate)||'').localeCompare(parseDoj(a.exitDate)||''));
