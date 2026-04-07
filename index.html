@@ -16,6 +16,7 @@ function importMISData(){
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -268,11 +269,13 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
   <div class="hdr-right">
     <button class="btn btn-white"  onclick="exportCSV()">&#8659; CSV</button>
     <button class="btn btn-white"  onclick="exportExcel()">&#8659; Excel</button>
-    <button class="btn btn-white"  onclick="document.getElementById('csvFile').click()">&#8657; Import</button>
+    <button class="btn btn-white"  onclick="document.getElementById('csvFile').click()">&#8657; Import CSV</button>
+    <button class="btn btn-white"  onclick="document.getElementById('xlsxFile').click()" style="background:#16a34a;color:#fff;border-color:#16a34a">&#8657; Import Excel</button>
     <button class="btn btn-white"  onclick="openDeptModal()">&#9881; Departments</button>
     <button class="btn btn-white"  onclick="printReport()">&#128438; Print</button>
     <button class="btn btn-demo"   onclick="loadDemoData()">&#9654; Demo</button>
     <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="importCSV(event)"/>
+    <input type="file" id="xlsxFile" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)"/>
   </div>
 </header>
 
@@ -2222,6 +2225,98 @@ function importCSV(ev){
   };
   reader.readAsText(file);
 }
+function importExcel(ev){
+  const file=ev.target.files[0]; if(!file) return;
+  if(!window.XLSX){ toast('SheetJS not loaded, try again','#ef4444'); return; }
+  if(!confirm('This will REPLACE all existing employee data with data from the Excel file. Continue?')) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(rows.length===0){ toast('No data found in Excel','#ef4444'); return; }
+
+      // Zimyo column name mapping (case-insensitive)
+      function col(row,keys){
+        for(const k of keys){
+          for(const rk of Object.keys(row)){
+            if(rk.toLowerCase().trim()===k.toLowerCase()) return (row[rk]||'').toString().trim();
+          }
+        }
+        return '';
+      }
+
+      // Status mapping: Zimyo → Tool
+      function mapStatus(s){
+        const v=s.toLowerCase().trim();
+        if(v==='separated'||v==='exit'||v==='exited') return 'Exited';
+        if(v==='snp'||v==='serving notice'||v==='serving notice period') return 'Serving Notice';
+        if(v==='probation'||v==='active'||v==='confirmed') return 'Active';
+        if(v==='yet to join'||v==='ytj') return 'Yet to Join';
+        if(v==='rr'||v==='redundancy'||v==='restructuring') return 'RR';
+        return s||'Active';
+      }
+
+      // Type mapping
+      function mapType(t){
+        const v=t.toLowerCase().trim();
+        if(v.includes('full')) return 'Full Time';
+        if(v.includes('fixed')) return 'Fixed Term Employee';
+        if(v.includes('consult')||v.includes('contract')) return 'Consultant';
+        if(v.includes('intern')) return 'Intern';
+        if(v.includes('contractor')) return 'Contractor';
+        return t||'Full Time';
+      }
+
+      const newEmps=[];
+      const newDepts=new Set(departments);
+      let skipped=0;
+      rows.forEach(row=>{
+        const id=col(row,['employee code','emp code','employee id','emp id','id','empcode']);
+        const name=col(row,['employee name','name','full name']);
+        if(!id||!name){ skipped++; return; }
+        const rawDoj=col(row,['date of joining','joining date','doj']);
+        const rawLwd=col(row,['last working date','lwd','exit date','separation date','date of exit']);
+        const dept=col(row,['department','dept']);
+        if(dept) newDepts.add(dept);
+        const rec={
+          id, name,
+          gender:col(row,['gender']),
+          type:mapType(col(row,['employee type','type','emp type'])),
+          dept,
+          desig:col(row,['designation','desig','job title']),
+          manager:col(row,['manager','reporting manager','manager name']),
+          location:col(row,['location','work location','office location']),
+          status:mapStatus(col(row,['status','employee status','emp status'])),
+          salary:parseFloat(col(row,['monthly ctc','ctc','salary','gross salary'])||'0')||0,
+          doj:parseDoj(rawDoj)||rawDoj,
+          lwd:parseDoj(rawLwd)||rawLwd,
+          mobile:col(row,['mobile','phone','contact number','mobile number']),
+          email:col(row,['email','email id','official email']),
+          dob:col(row,['date of birth','dob','birth date']),
+        };
+        newEmps.push(rec);
+      });
+
+      if(newEmps.length===0){ toast('No valid employees found in Excel','#ef4444'); return; }
+
+      employees.length=0;
+      newEmps.forEach(r=>employees.push(r));
+      departments.length=0;
+      [...newDepts].forEach(d=>departments.push(d));
+
+      save(); populateDeptDropdowns(); render();
+      toast(`Excel imported: ${newEmps.length} employees loaded, ${skipped} rows skipped`,'#10b981');
+    }catch(err){
+      toast('Error reading Excel: '+err.message,'#ef4444');
+      console.error(err);
+    }
+    ev.target.value='';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 function parseCSVLine(line){
   const res=[]; let cur=''; let inQ=false;
   for(const c of line){ if(c==='"'){inQ=!inQ;continue;} if(c===','&&!inQ){res.push(cur.trim());cur='';continue;} cur+=c; }
