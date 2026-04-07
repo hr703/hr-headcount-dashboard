@@ -2949,6 +2949,11 @@ function initApp(){
         revisions   = d.emp_revisions || [];
         esops       = d.emp_esops || [];
       }
+      // Normalize employee type values
+      employees.forEach(e=>{
+        if(e.type==='Full-Time') e.type='Full Time';
+        if(e.type==='Part-Time') e.type='Consultant';
+      });
       render(); renderEsopSummary();
     })
     .catch(()=>{ render(); renderEsopSummary(); });
