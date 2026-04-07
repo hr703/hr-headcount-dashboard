@@ -3093,9 +3093,9 @@ function initApp(){
         if(e.type==='Full-Time') e.type='Full Time';
         if(e.type==='Part-Time') e.type='Consultant';
       });
-      render(); renderEsopSummary();
+      render(); renderEsopSummary(); toast('Loaded: '+employees.length+' employees','#10b981');
     })
-    .catch(()=>{ render(); renderEsopSummary(); });
+    .catch(()=>{ render(); renderEsopSummary(); toast('API failed, using local: '+employees.length,'#ef4444'); });
 }
 
 
