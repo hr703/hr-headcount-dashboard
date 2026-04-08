@@ -302,6 +302,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       <button class="tab-btn" onclick="switchTab('tenure',this)">&#128197; Tenure Analysis</button>
       <button class="tab-btn" onclick="switchTab('salaryband',this)">&#128200; Salary Band</button>
       <button class="tab-btn" onclick="switchTab('mthsummary',this)">&#128203; Monthly Summary</button>
+      <button class="tab-btn" onclick="switchTab('workforce',this)">&#128202; Workforce Analytics</button>
     </div>
   </div>
 
@@ -1473,6 +1474,104 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
     </div>
   </div>
 
+
+  <!-- ══ WORKFORCE ANALYTICS TAB ══ -->
+  <div class="tab-content" id="tab-workforce">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+      <div class="sec-title" style="margin:0">HR Analytics Dashboard &nbsp;<span style="font-size:14px;font-weight:400;color:#64748b">| Workforce Insights</span></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <select id="wf-dept-filter" onchange="renderWorkforceTab()" style="padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;background:#fff;color:#1e293b">
+          <option value="">All Departments</option>
+        </select>
+        <select id="wf-gender-filter" onchange="renderWorkforceTab()" style="padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;background:#fff;color:#1e293b">
+          <option value="">All Genders</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+        <select id="wf-type-filter" onchange="renderWorkforceTab()" style="padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;background:#fff;color:#1e293b">
+          <option value="">All Types</option>
+          <option value="Full Time">Full Time</option>
+          <option value="Consultant">Consultant</option>
+          <option value="Fixed Term Employee">Fixed Term</option>
+        </select>
+      </div>
+    </div>
+    <!-- KPI Cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:24px">
+      <div style="background:linear-gradient(135deg,#1e3a5f,#2d5a8e);border-radius:14px;padding:20px;color:#fff;display:flex;align-items:center;gap:16px">
+        <div style="font-size:36px;opacity:.9">👥</div>
+        <div><div style="font-size:12px;opacity:.8;font-weight:600;letter-spacing:.5px">TOTAL EMPLOYEES</div><div id="wf-total" style="font-size:32px;font-weight:800">—</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#dc2626,#ef4444);border-radius:14px;padding:20px;color:#fff;display:flex;align-items:center;gap:16px">
+        <div style="font-size:36px;opacity:.9">⚠️</div>
+        <div><div style="font-size:12px;opacity:.8;font-weight:600;letter-spacing:.5px">ATTRITION RATE</div><div id="wf-attrition" style="font-size:32px;font-weight:800">—</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#0ea5e9,#0284c7);border-radius:14px;padding:20px;color:#fff;display:flex;align-items:center;gap:16px">
+        <div style="font-size:36px;opacity:.9">💰</div>
+        <div><div style="font-size:12px;opacity:.8;font-weight:600;letter-spacing:.5px">AVG SALARY</div><div id="wf-avgsalary" style="font-size:28px;font-weight:800">—</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:14px;padding:20px;color:#fff;display:flex;align-items:center;gap:16px">
+        <div style="font-size:36px;opacity:.9">🎂</div>
+        <div><div style="font-size:12px;opacity:.8;font-weight:600;letter-spacing:.5px">AVERAGE AGE</div><div id="wf-avgage" style="font-size:32px;font-weight:800">—</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#10b981,#059669);border-radius:14px;padding:20px;color:#fff;display:flex;align-items:center;gap:16px">
+        <div style="font-size:36px;opacity:.9">📈</div>
+        <div><div style="font-size:12px;opacity:.8;font-weight:600;letter-spacing:.5px">TOTAL COST/MONTH</div><div id="wf-totalcost" style="font-size:24px;font-weight:800">—</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);border-radius:14px;padding:20px;color:#fff;display:flex;align-items:center;gap:16px">
+        <div style="font-size:36px;opacity:.9">🏢</div>
+        <div><div style="font-size:12px;opacity:.8;font-weight:600;letter-spacing:.5px">DEPARTMENTS</div><div id="wf-depts" style="font-size:32px;font-weight:800">—</div></div>
+      </div>
+    </div>
+    <!-- Charts Row 1 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
+      <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #f1f5f9">
+        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:14px">Attrition by Department</div>
+        <canvas id="wf-chart-attrDept" height="220"></canvas>
+      </div>
+      <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #f1f5f9">
+        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:14px">Gender Distribution</div>
+        <canvas id="wf-chart-gender" height="220"></canvas>
+      </div>
+      <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #f1f5f9">
+        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:14px">Employees by Age Group</div>
+        <canvas id="wf-chart-age" height="220"></canvas>
+      </div>
+    </div>
+    <!-- Charts Row 2 -->
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px">
+      <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #f1f5f9">
+        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:14px">Salary by Department (Avg ₹)</div>
+        <canvas id="wf-chart-salDept" height="200"></canvas>
+      </div>
+      <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #f1f5f9">
+        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:14px">Monthly Hiring Trend (FY 2025-26)</div>
+        <canvas id="wf-chart-hiring" height="200"></canvas>
+      </div>
+    </div>
+    <!-- Charts Row 3 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #f1f5f9">
+        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:14px">Attrition by Gender</div>
+        <div style="display:flex;gap:32px;align-items:center;padding:16px 0">
+          <div style="text-align:center">
+            <div style="font-size:13px;color:#64748b;margin-bottom:4px">👨 Male</div>
+            <div id="wf-attr-male" style="font-size:36px;font-weight:800;color:#3b82f6">—</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:13px;color:#64748b;margin-bottom:4px">👩 Female</div>
+            <div id="wf-attr-female" style="font-size:36px;font-weight:800;color:#ec4899">—</div>
+          </div>
+        </div>
+        <canvas id="wf-chart-attrGender" height="160"></canvas>
+      </div>
+      <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #f1f5f9">
+        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:14px">Headcount by Employee Type</div>
+        <canvas id="wf-chart-type" height="200"></canvas>
+      </div>
+    </div>
+  </div><!-- /tab-workforce -->
+
 </div><!-- /container -->
 
 <script>
@@ -1832,6 +1931,7 @@ function render(){
   renderRRTab();
   renderTenureTab();
   renderSalaryBandTab();
+  renderWorkforceTab();
 }
 
 function renderRevKPIs(){
@@ -2460,6 +2560,7 @@ function switchTab(name, btn){
     if(name==='tenure')    renderTenureTab();
     if(name==='salaryband') renderSalaryBandTab();
     if(name==='mthsummary') renderMthSummaryTab();
+    if(name==='workforce')  renderWorkforceTab();
   });
 }
 
@@ -3772,6 +3873,148 @@ function renderSalaryBandTab(){
       <td style="padding:8px 10px;color:#64748b">${e.desig||'-'}</td>
       <td style="padding:8px 10px;text-align:right;font-weight:700;color:#92400e">${fmt(e.salary)}</td>
     </tr>`).join('');
+}
+
+// ── WORKFORCE ANALYTICS ────────────────────────────────────────────
+const _wfCharts = {};
+function renderWorkforceTab(){
+  // Populate dept filter
+  const deptSel = document.getElementById('wf-dept-filter');
+  if(deptSel && deptSel.options.length <= 1){
+    const depts=[...new Set(employees.map(e=>e.dept).filter(Boolean))].sort();
+    depts.forEach(d=>{ const o=document.createElement('option'); o.value=d; o.textContent=d; deptSel.appendChild(o); });
+  }
+  const deptF   = document.getElementById('wf-dept-filter')?.value   || '';
+  const genderF = document.getElementById('wf-gender-filter')?.value || '';
+  const typeF   = document.getElementById('wf-type-filter')?.value   || '';
+
+  // Base = active employees only (for headcount analytics)
+  const base = employees.filter(e=>{
+    if(!['Active','Serving Notice','RR'].includes(e.status||'')) return false;
+    if(deptF   && e.dept   !== deptF)   return false;
+    if(genderF && e.gender !== genderF) return false;
+    if(typeF   && e.type   !== typeF)   return false;
+    return true;
+  });
+  const allFiltered = employees.filter(e=>{
+    if(deptF   && e.dept   !== deptF)   return false;
+    if(genderF && e.gender !== genderF) return false;
+    if(typeF   && e.type   !== typeF)   return false;
+    return true;
+  });
+  const exited = allFiltered.filter(e=>e.status==='Exited');
+  const total  = base.length;
+  const attrPct= total>0 ? ((exited.length/total)*100).toFixed(1)+'%' : '0%';
+  const avgSal = total>0 ? Math.round(base.reduce((s,e)=>s+(e.salary||0),0)/total) : 0;
+
+  // Avg Age from dob
+  const withAge = base.filter(e=>e.dob);
+  const avgAge  = withAge.length>0
+    ? (withAge.reduce((s,e)=>{ const y=new Date().getFullYear()-parseInt((parseDoj(e.dob)||e.dob||'').substring(0,4)); return s+y; },0)/withAge.length).toFixed(1)
+    : '—';
+  const totalCost = base.reduce((s,e)=>s+(e.salary||0),0);
+  const deptCount = [...new Set(base.map(e=>e.dept).filter(Boolean))].length;
+
+  document.getElementById('wf-total').textContent     = total;
+  document.getElementById('wf-attrition').textContent = attrPct;
+  document.getElementById('wf-avgsalary').textContent = fmt(avgSal);
+  document.getElementById('wf-avgage').textContent    = avgAge;
+  document.getElementById('wf-totalcost').textContent = fmt(totalCost);
+  document.getElementById('wf-depts').textContent     = deptCount;
+
+  // ── Chart helpers ──
+  function destroyChart(id){ if(_wfCharts[id]){ _wfCharts[id].destroy(); delete _wfCharts[id]; } }
+  function mkChart(id, cfg){ destroyChart(id); _wfCharts[id]=new Chart(document.getElementById(id).getContext('2d'), cfg); }
+
+  const COLORS=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#f97316','#14b8a6','#6366f1','#84cc16','#e11d48'];
+
+  // 1. Attrition by Dept
+  const deptExited={};
+  exited.forEach(e=>{ if(e.dept) deptExited[e.dept]=(deptExited[e.dept]||0)+1; });
+  const attrDepts=Object.entries(deptExited).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  mkChart('wf-chart-attrDept',{
+    type:'bar',
+    data:{ labels:attrDepts.map(x=>x[0]), datasets:[{data:attrDepts.map(x=>x[1]), backgroundColor:'#3b82f6', borderRadius:6}] },
+    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{grid:{display:false}}}, maintainAspectRatio:false }
+  });
+
+  // 2. Gender Distribution
+  const maleC=base.filter(e=>e.gender==='Male').length;
+  const femC =base.filter(e=>e.gender==='Female').length;
+  const otherC=base.length-maleC-femC;
+  const gLabels=['Male','Female',...(otherC>0?['Other']:[])];
+  const gData=[maleC,femC,...(otherC>0?[otherC]:[])];
+  mkChart('wf-chart-gender',{
+    type:'doughnut',
+    data:{ labels:gLabels, datasets:[{data:gData, backgroundColor:['#3b82f6','#ec4899','#10b981'], borderWidth:2}] },
+    options:{ plugins:{legend:{position:'bottom',labels:{font:{size:12}}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} (${total>0?((ctx.raw/total)*100).toFixed(1):0}%)`}}}, maintainAspectRatio:false }
+  });
+
+  // 3. Age Groups
+  const ageBuckets={'20-25':0,'26-30':0,'31-35':0,'36-40':0,'41-45':0,'46+':0};
+  base.forEach(e=>{
+    if(!e.dob) return;
+    const age=new Date().getFullYear()-parseInt((parseDoj(e.dob)||e.dob||'').substring(0,4));
+    if(age<26) ageBuckets['20-25']++;
+    else if(age<31) ageBuckets['26-30']++;
+    else if(age<36) ageBuckets['31-35']++;
+    else if(age<41) ageBuckets['36-40']++;
+    else if(age<46) ageBuckets['41-45']++;
+    else ageBuckets['46+']++;
+  });
+  mkChart('wf-chart-age',{
+    type:'bar',
+    data:{ labels:Object.keys(ageBuckets), datasets:[{data:Object.values(ageBuckets), backgroundColor:['#6366f1','#3b82f6','#10b981','#f59e0b','#f97316','#ef4444'], borderRadius:6}] },
+    options:{ plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{grid:{display:false}}}, maintainAspectRatio:false }
+  });
+
+  // 4. Salary by Dept
+  const deptSalMap={};
+  base.forEach(e=>{ if(!e.dept) return; if(!deptSalMap[e.dept]) deptSalMap[e.dept]={sum:0,cnt:0}; deptSalMap[e.dept].sum+=e.salary||0; deptSalMap[e.dept].cnt++; });
+  const salDepts=Object.entries(deptSalMap).map(([d,v])=>({dept:d,avg:Math.round(v.sum/v.cnt)})).sort((a,b)=>b.avg-a.avg).slice(0,8);
+  mkChart('wf-chart-salDept',{
+    type:'bar',
+    data:{ labels:salDepts.map(x=>x.dept), datasets:[{data:salDepts.map(x=>x.avg), backgroundColor:COLORS.slice(0,salDepts.length), borderRadius:6}] },
+    options:{ plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'Avg: '+fmt(ctx.raw)}}}, scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{grid:{display:false},ticks:{callback:v=>'₹'+Math.round(v/1000)+'k'}}}, maintainAspectRatio:false }
+  });
+
+  // 5. Monthly Hiring Trend (last 12 months)
+  const hiringMonths=[];
+  const hiringCounts=[];
+  for(let i=11;i>=0;i--){
+    const d=new Date(); d.setMonth(d.getMonth()-i);
+    const mKey=d.toISOString().substring(0,7);
+    const lbl=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+'-'+String(d.getFullYear()).substring(2);
+    hiringMonths.push(lbl);
+    hiringCounts.push(allFiltered.filter(e=>(parseDoj(e.doj)||'').substring(0,7)===mKey).length);
+  }
+  mkChart('wf-chart-hiring',{
+    type:'line',
+    data:{ labels:hiringMonths, datasets:[{data:hiringCounts, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,.1)', tension:.4, fill:true, pointBackgroundColor:'#3b82f6', pointRadius:4}] },
+    options:{ plugins:{legend:{display:false}}, scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{grid:{color:'#f1f5f9'},ticks:{stepSize:1}}}, maintainAspectRatio:false }
+  });
+
+  // 6. Attrition by Gender
+  const maleExited=exited.filter(e=>e.gender==='Male').length;
+  const femExited =exited.filter(e=>e.gender==='Female').length;
+  const malePct = base.filter(e=>e.gender==='Male').length>0 ? ((maleExited/base.filter(e=>e.gender==='Male').length)*100).toFixed(1)+'%' : '0%';
+  const femPct  = base.filter(e=>e.gender==='Female').length>0 ? ((femExited/base.filter(e=>e.gender==='Female').length)*100).toFixed(1)+'%' : '0%';
+  document.getElementById('wf-attr-male').textContent   = malePct;
+  document.getElementById('wf-attr-female').textContent = femPct;
+  mkChart('wf-chart-attrGender',{
+    type:'bar',
+    data:{ labels:['Male Exits','Female Exits'], datasets:[{data:[maleExited,femExited], backgroundColor:['#3b82f6','#ec4899'], borderRadius:8}] },
+    options:{ plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{grid:{display:false},ticks:{stepSize:1}}}, maintainAspectRatio:false }
+  });
+
+  // 7. Headcount by Type
+  const typeMap={};
+  base.forEach(e=>{ const t=e.type||'Unknown'; typeMap[t]=(typeMap[t]||0)+1; });
+  mkChart('wf-chart-type',{
+    type:'doughnut',
+    data:{ labels:Object.keys(typeMap), datasets:[{data:Object.values(typeMap), backgroundColor:['#3b82f6','#f59e0b','#10b981','#8b5cf6'], borderWidth:2}] },
+    options:{ plugins:{legend:{position:'bottom',labels:{font:{size:12}}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} (${total>0?((ctx.raw/total)*100).toFixed(1):0}%)`}}}, maintainAspectRatio:false }
+  });
 }
 
 // ── MONTHLY SUMMARY ────────────────────────────────────────────────
