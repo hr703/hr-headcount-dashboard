@@ -1497,26 +1497,25 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
         </select>
       </div>
     </div>
-    <!-- KPI Cards -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
-      <div class="kpi" style="--kpi-color:#1e3a5f;--kpi-bg:#dbeafe">
-        <div class="icon">👥</div><div class="lbl">Total Employees</div><div id="wf-total" class="val">—</div>
-      </div>
-      <div class="kpi" style="--kpi-color:var(--red);--kpi-bg:#fee2e2">
-        <div class="icon">⚠️</div><div class="lbl">Attrition Rate</div><div id="wf-attrition" class="val" style="color:var(--red)">—</div>
-      </div>
-      <div class="kpi" style="--kpi-color:var(--accent);--kpi-bg:#e0f2fe">
-        <div class="icon">💰</div><div class="lbl">Avg Salary</div><div id="wf-avgsalary" class="val" style="font-size:18px">—</div>
-      </div>
-      <div class="kpi" style="--kpi-color:var(--orange);--kpi-bg:#fef3c7">
-        <div class="icon">🎂</div><div class="lbl">Average Age</div><div id="wf-avgage" class="val">—</div>
-      </div>
-      <div class="kpi" style="--kpi-color:var(--green);--kpi-bg:#d1fae5">
-        <div class="icon">📊</div><div class="lbl">Total Cost/Month</div><div id="wf-totalcost" class="val" style="font-size:16px">—</div>
-      </div>
-      <div class="kpi" style="--kpi-color:var(--purple);--kpi-bg:#ede9fe">
-        <div class="icon">🏢</div><div class="lbl">Departments</div><div id="wf-depts" class="val">—</div>
-      </div>
+    <!-- KPI Summary Table -->
+    <div class="card" style="margin-bottom:20px;overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:#1e3a5f;color:#fff">
+            <th style="padding:10px 14px;text-align:left;font-weight:700;border-radius:8px 0 0 0">Category</th>
+            <th style="padding:10px 14px;text-align:center;font-weight:700">Headcount</th>
+            <th style="padding:10px 14px;text-align:center;font-weight:700">Active</th>
+            <th style="padding:10px 14px;text-align:center;font-weight:700">Exits (YTD)</th>
+            <th style="padding:10px 14px;text-align:center;font-weight:700">Attrition %</th>
+            <th style="padding:10px 14px;text-align:center;font-weight:700">Avg Salary</th>
+            <th style="padding:10px 14px;text-align:center;font-weight:700">Total Cost/Month</th>
+            <th style="padding:10px 14px;text-align:center;font-weight:700;border-radius:0 8px 0 0">Avg Age</th>
+          </tr>
+        </thead>
+        <tbody id="wf-kpi-body">
+          <tr><td colspan="8" style="padding:16px;text-align:center;color:var(--muted)">Loading...</td></tr>
+        </tbody>
+      </table>
     </div>
     <!-- Charts Row 1 -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
@@ -1547,22 +1546,12 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
     <!-- Charts Row 3 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div class="card" style="padding:18px">
-        <div class="sec-title">Attrition by Gender</div>
-        <div style="display:flex;gap:32px;align-items:center;padding:8px 0 12px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:40px;height:40px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">👨</div>
-            <div><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Male</div><div id="wf-attr-male" style="font-size:22px;font-weight:800;color:#1e3a5f">—</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:40px;height:40px;background:#fee2e2;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">👩</div>
-            <div><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Female</div><div id="wf-attr-female" style="font-size:22px;font-weight:800;color:var(--red)">—</div></div>
-          </div>
-        </div>
-        <div style="position:relative;height:160px"><canvas id="wf-chart-attrGender"></canvas></div>
+        <div class="sec-title">Headcount by Employee Type</div>
+        <div style="position:relative;height:260px"><canvas id="wf-chart-type"></canvas></div>
       </div>
       <div class="card" style="padding:18px">
-        <div class="sec-title">Headcount by Employee Type</div>
-        <div style="position:relative;height:220px"><canvas id="wf-chart-type"></canvas></div>
+        <div class="sec-title">Attrition by Employee Type</div>
+        <div style="position:relative;height:260px"><canvas id="wf-chart-attrType"></canvas></div>
       </div>
     </div>
   </div><!-- /tab-workforce -->
@@ -3899,23 +3888,43 @@ function renderWorkforceTab(){
   });
   const exited = allFiltered.filter(e=>e.status==='Exited');
   const total  = base.length;
-  const attrPct= total>0 ? ((exited.length/total)*100).toFixed(1)+'%' : '0%';
+
+  // Helper functions for each category
+  function calcKPI(filterFn, label, color, icon){
+    const b  = base.filter(filterFn);
+    const ex = allFiltered.filter(e=>filterFn(e) && e.status==='Exited');
+    const cnt= b.length;
+    const active = b.filter(e=>e.status==='Active').length;
+    const attrP  = cnt>0 ? ((ex.length/cnt)*100).toFixed(1)+'%' : '0%';
+    const avgS   = cnt>0 ? Math.round(b.reduce((s,e)=>s+(e.salary||0),0)/cnt) : 0;
+    const cost   = b.reduce((s,e)=>s+(e.salary||0),0);
+    const wa     = b.filter(e=>e.dob);
+    const age    = wa.length>0 ? (wa.reduce((s,e)=>{ const y=new Date().getFullYear()-parseInt((parseDoj(e.dob)||e.dob||'2000').substring(0,4)); return s+y; },0)/wa.length).toFixed(1) : '—';
+    return {label,color,icon,cnt,active,exits:ex.length,attrP,avgS,cost,age};
+  }
+  const ftKPI = calcKPI(e=>(e.type||'').toLowerCase().includes('full'), 'Full Time', '#1e3a5f', '🔵');
+  const csKPI = calcKPI(e=>(e.type||'').toLowerCase().includes('consult'), 'Consultant', '#0ea5e9', '🟡');
+  const ftKPI2= calcKPI(e=>(e.type||'').toLowerCase().includes('fixed'), 'Fixed Term', '#8b5cf6', '🟣');
+  const allKPI= calcKPI(()=>true, 'Total', '#10b981', '🟢');
+
+  // KPI Table
+  const kpiRows=[ftKPI,csKPI,ftKPI2,allKPI];
+  const rowStyle = (i,last)=>`background:${last?'#f0f7ff':i%2===0?'#fff':'#f8fafc'}`;
+  document.getElementById('wf-kpi-body').innerHTML = kpiRows.map((k,i)=>`
+    <tr style="${rowStyle(i, i===kpiRows.length-1)};${i===kpiRows.length-1?'font-weight:700;border-top:2px solid #e2e8f0':''}">
+      <td style="padding:10px 14px;font-weight:600;color:#1e293b">${k.icon} ${k.label}</td>
+      <td style="padding:10px 14px;text-align:center;font-size:16px;font-weight:700;color:${k.color}">${k.cnt}</td>
+      <td style="padding:10px 14px;text-align:center;color:#10b981;font-weight:600">${k.active}</td>
+      <td style="padding:10px 14px;text-align:center;color:#ef4444;font-weight:600">${k.exits}</td>
+      <td style="padding:10px 14px;text-align:center;color:#ef4444;font-weight:700">${k.attrP}</td>
+      <td style="padding:10px 14px;text-align:center;color:#1e293b;font-weight:600">${fmt(k.avgS)}</td>
+      <td style="padding:10px 14px;text-align:center;color:#1e293b;font-weight:700">${fmt(k.cost)}</td>
+      <td style="padding:10px 14px;text-align:center;color:#64748b">${k.age}</td>
+    </tr>`).join('');
+
+  // For chart base still use total
   const avgSal = total>0 ? Math.round(base.reduce((s,e)=>s+(e.salary||0),0)/total) : 0;
-
-  // Avg Age from dob
-  const withAge = base.filter(e=>e.dob);
-  const avgAge  = withAge.length>0
-    ? (withAge.reduce((s,e)=>{ const y=new Date().getFullYear()-parseInt((parseDoj(e.dob)||e.dob||'').substring(0,4)); return s+y; },0)/withAge.length).toFixed(1)
-    : '—';
   const totalCost = base.reduce((s,e)=>s+(e.salary||0),0);
-  const deptCount = [...new Set(base.map(e=>e.dept).filter(Boolean))].length;
-
-  document.getElementById('wf-total').textContent     = total;
-  document.getElementById('wf-attrition').textContent = attrPct;
-  document.getElementById('wf-avgsalary').textContent = fmt(avgSal);
-  document.getElementById('wf-avgage').textContent    = avgAge;
-  document.getElementById('wf-totalcost').textContent = fmt(totalCost);
-  document.getElementById('wf-depts').textContent     = deptCount;
 
   // ── Chart helpers ──
   function destroyChart(id){ if(_wfCharts[id]){ _wfCharts[id].destroy(); delete _wfCharts[id]; } }
@@ -3990,17 +3999,13 @@ function renderWorkforceTab(){
     options:{ plugins:{legend:{display:false}}, scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{grid:{color:'#f1f5f9'},ticks:{stepSize:1}}}, maintainAspectRatio:false }
   });
 
-  // 6. Attrition by Gender
-  const maleExited=exited.filter(e=>e.gender==='Male').length;
-  const femExited =exited.filter(e=>e.gender==='Female').length;
-  const malePct = base.filter(e=>e.gender==='Male').length>0 ? ((maleExited/base.filter(e=>e.gender==='Male').length)*100).toFixed(1)+'%' : '0%';
-  const femPct  = base.filter(e=>e.gender==='Female').length>0 ? ((femExited/base.filter(e=>e.gender==='Female').length)*100).toFixed(1)+'%' : '0%';
-  document.getElementById('wf-attr-male').textContent   = malePct;
-  document.getElementById('wf-attr-female').textContent = femPct;
-  mkChart('wf-chart-attrGender',{
+  // 6. Attrition by Employee Type
+  const typeExitMap={};
+  exited.forEach(e=>{ const t=e.type||'Unknown'; typeExitMap[t]=(typeExitMap[t]||0)+1; });
+  mkChart('wf-chart-attrType',{
     type:'bar',
-    data:{ labels:['Male Exits','Female Exits'], datasets:[{data:[maleExited,femExited], backgroundColor:['#1e3a5f','#ef4444'], borderRadius:8}] },
-    options:{ plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',font:{size:12,weight:'700'},color:'#1e3a5f'}}, scales:{x:{grid:{display:false}},y:{grid:{display:false},ticks:{stepSize:1}}}, maintainAspectRatio:false }
+    data:{ labels:Object.keys(typeExitMap), datasets:[{data:Object.values(typeExitMap), backgroundColor:['#1e3a5f','#0ea5e9','#8b5cf6','#f59e0b'], borderRadius:8}] },
+    options:{ plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',font:{size:13,weight:'700'},color:'#1e3a5f'}}, scales:{x:{grid:{display:false}},y:{grid:{display:false},ticks:{stepSize:1}}}, maintainAspectRatio:false }
   });
 
   // 7. Headcount by Type
