@@ -3930,7 +3930,7 @@ function renderWorkforceTab(){
   mkChart('wf-chart-attrDept',{
     type:'bar',
     data:{ labels:attrDepts.map(x=>x[0]), datasets:[{data:attrDepts.map(x=>x[1]), backgroundColor:'#3b82f6', borderRadius:6}] },
-    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{grid:{display:false}}}, maintainAspectRatio:false }
+    options:{ indexAxis:'y', plugins:{legend:{display:false},datalabels:{anchor:'end',align:'right',font:{size:11},color:'#1e293b'}}, scales:{x:{grid:{display:false}},y:{grid:{display:false}}}, maintainAspectRatio:false }
   });
 
   // 2. Gender Distribution
@@ -3960,7 +3960,7 @@ function renderWorkforceTab(){
   mkChart('wf-chart-age',{
     type:'bar',
     data:{ labels:Object.keys(ageBuckets), datasets:[{data:Object.values(ageBuckets), backgroundColor:['#6366f1','#3b82f6','#10b981','#f59e0b','#f97316','#ef4444'], borderRadius:6}] },
-    options:{ plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{grid:{display:false}}}, maintainAspectRatio:false }
+    options:{ plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',font:{size:11},color:'#1e293b'}}, scales:{x:{grid:{display:false}},y:{grid:{display:false}}}, maintainAspectRatio:false }
   });
 
   // 4. Salary by Dept
@@ -3971,7 +3971,7 @@ function renderWorkforceTab(){
   mkChart('wf-chart-salDept',{
     type:'bar',
     data:{ labels:salDepts.map(x=>x.dept), datasets:[{data:salDepts.map(x=>x.avg), backgroundColor:COLORS.slice(0,salDepts.length), borderRadius:6}] },
-    options:{ plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'Avg: '+fmt(ctx.raw)}}}, scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{grid:{display:false},ticks:{callback:v=>'₹'+Math.round(v/1000)+'k'}}}, maintainAspectRatio:false }
+    options:{ plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'Avg: '+fmt(ctx.raw)}},datalabels:{anchor:'center',align:'center',font:{size:10,weight:'700'},color:'#fff',formatter:v=>'₹'+Math.round(v/1000)+'k'}}, scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{grid:{display:false},ticks:{callback:v=>'₹'+Math.round(v/1000)+'k'}}}, maintainAspectRatio:false }
   });
 
   // 5. Monthly Hiring Trend (last 12 months)
@@ -4000,7 +4000,7 @@ function renderWorkforceTab(){
   mkChart('wf-chart-attrGender',{
     type:'bar',
     data:{ labels:['Male Exits','Female Exits'], datasets:[{data:[maleExited,femExited], backgroundColor:['#1e3a5f','#ef4444'], borderRadius:8}] },
-    options:{ plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{grid:{display:false},ticks:{stepSize:1}}}, maintainAspectRatio:false }
+    options:{ plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',font:{size:12,weight:'700'},color:'#1e3a5f'}}, scales:{x:{grid:{display:false}},y:{grid:{display:false},ticks:{stepSize:1}}}, maintainAspectRatio:false }
   });
 
   // 7. Headcount by Type
