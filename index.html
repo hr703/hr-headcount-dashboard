@@ -3810,10 +3810,18 @@ function renderMthSummaryTab(){
         const ed = parseDoj(getLwd(e));
         return ed && ed.substring(0,7) === mKey;
       });
-      // Opening = for Apr (first month): Active + Serving Notice + RR (exclude Exited & Yet to Join)
-      //           for other months: prev month closing
+      // Opening = March closing (employees on roll at end of March 2026)
+      //           = DOJ <= 2026-03-31 AND (no LWD or LWD >= 2026-04-01)
+      //         for other months: prev month closing
       const opening = i === 0
-        ? employees.filter(e => filterFn(e) && ['Active','Serving Notice','RR'].includes(e.status||'')).length
+        ? employees.filter(e => {
+            if(!filterFn(e)) return false;
+            const doj = parseDoj(getDoj(e));
+            if(!doj || doj.substring(0,7) > '2026-03') return false;
+            const lwd = parseDoj(getLwd(e));
+            if(lwd && lwd.substring(0,7) < '2026-04') return false;
+            return true;
+          }).length
         : (rows.closing[i-1] || 0);
       // Closing = Opening + Joined - Resigned
       const closing = opening + joined.length - resigned.length;
