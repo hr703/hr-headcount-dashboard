@@ -3087,7 +3087,8 @@ function initApp(){
   fetch('/api/data', {headers:{'X-Auth-Token':'hr-secure-2025'}})
     .then(r=>r.json())
     .then(d=>{
-      if(d.emp_data && d.emp_data.length > employees.length){
+      if(d.emp_data && d.emp_data.length >= 100){
+        // API data is authoritative — always use it (handles deletions/additions)
         employees   = d.emp_data;
         departments = d.emp_depts || departments;
         revisions   = d.emp_revisions || [];
