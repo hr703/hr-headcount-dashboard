@@ -1921,10 +1921,17 @@ function renderKPIs(){
   document.getElementById('s-locations').textContent   = locs.length;
   document.getElementById('s-loc-detail').textContent  = locs.length>0 ? 'Top: '+topLoc : 'No locations added';
 
-  // Exited Employees table in Overview
-  const allExitedOv = employees.filter(e=>e.status==='Exited'||((e.lwd||e.exitDate||'').trim())).sort((a,b)=>(b.lwd||b.exitDate||'').localeCompare(a.lwd||a.exitDate||''));
+  // Exited Employees table in Overview — filtered by selected month
+  const _ovM = ovMonth || new Date().toISOString().substring(0,7);
+  const allExitedOv = employees.filter(e=>{
+    const lwd=(e.lwd||e.exitDate||'').trim();
+    if(!lwd) return false;
+    const lwdM=(parseDoj(lwd)||lwd).substring(0,7);
+    return lwdM===_ovM;
+  }).sort((a,b)=>(b.lwd||b.exitDate||'').localeCompare(a.lwd||a.exitDate||''));
   const ovHdr=document.getElementById('ov-exited-hdr');
-  if(ovHdr) ovHdr.textContent='All Exited Employees (Total: '+allExitedOv.length+')';
+  const _ovMLabel=_ovM.substring(0,4)+'-'+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(_ovM.substring(5,7))-1];
+  if(ovHdr) ovHdr.textContent='Exited in '+_ovMLabel+' (Total: '+allExitedOv.length+')';
   const ovExBody=document.getElementById('ov-exited-body');
   if(ovExBody) ovExBody.innerHTML = allExitedOv.length ? allExitedOv.map(e=>`<tr style="border-bottom:1px solid #f1f5f9">
     <td style="padding:8px 10px;font-weight:700;color:var(--primary)">${e.empCode||e.id||'-'}</td>
