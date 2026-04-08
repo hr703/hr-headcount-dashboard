@@ -1495,6 +1495,21 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
           <option value="Consultant">Consultant</option>
           <option value="Fixed Term Employee">Fixed Term</option>
         </select>
+        <select id="wf-month-filter" onchange="renderWorkforceTab()" style="padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text)">
+          <option value="">All Months</option>
+          <option value="2026-04">Apr-26</option>
+          <option value="2026-05">May-26</option>
+          <option value="2026-06">Jun-26</option>
+          <option value="2026-07">Jul-26</option>
+          <option value="2026-08">Aug-26</option>
+          <option value="2026-09">Sep-26</option>
+          <option value="2026-10">Oct-26</option>
+          <option value="2026-11">Nov-26</option>
+          <option value="2026-12">Dec-26</option>
+          <option value="2027-01">Jan-27</option>
+          <option value="2027-02">Feb-27</option>
+          <option value="2027-03">Mar-27</option>
+        </select>
       </div>
     </div>
     <!-- KPI Summary Table -->
@@ -3871,13 +3886,22 @@ function renderWorkforceTab(){
   const deptF   = document.getElementById('wf-dept-filter')?.value   || '';
   const genderF = document.getElementById('wf-gender-filter')?.value || '';
   const typeF   = document.getElementById('wf-type-filter')?.value   || '';
+  const monthF  = document.getElementById('wf-month-filter')?.value  || '';
 
-  // Base = active employees only (for headcount analytics)
+  // Base = active employees on roll (filtered by month if selected)
   const base = employees.filter(e=>{
-    if(!['Active','Serving Notice','RR'].includes(e.status||'')) return false;
     if(deptF   && e.dept   !== deptF)   return false;
     if(genderF && e.gender !== genderF) return false;
     if(typeF   && e.type   !== typeF)   return false;
+    if(monthF){
+      // Active in selected month: joined on or before month AND (no LWD or LWD >= month)
+      const doj = parseDoj(e.doj||'');
+      if(!doj || doj.substring(0,7) > monthF) return false;
+      const lwd = parseDoj(e.lwd||e.exitDate||'');
+      if(lwd && lwd.substring(0,7) < monthF) return false;
+    } else {
+      if(!['Active','Serving Notice','RR'].includes(e.status||'')) return false;
+    }
     return true;
   });
   const allFiltered = employees.filter(e=>{
@@ -3886,7 +3910,10 @@ function renderWorkforceTab(){
     if(typeF   && e.type   !== typeF)   return false;
     return true;
   });
-  const exited = allFiltered.filter(e=>e.status==='Exited');
+  // Exits: if month selected → LWD in that month, else all exited
+  const exited = monthF
+    ? allFiltered.filter(e=>{ const lwd=parseDoj(e.lwd||e.exitDate||''); return lwd && lwd.substring(0,7)===monthF; })
+    : allFiltered.filter(e=>e.status==='Exited');
   const total  = base.length;
 
   // Helper functions for each category
