@@ -1520,11 +1520,11 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
             <th style="padding:10px 14px;text-align:left;font-weight:700;border-radius:8px 0 0 0">Category</th>
             <th style="padding:10px 14px;text-align:center;font-weight:700">Headcount</th>
             <th style="padding:10px 14px;text-align:center;font-weight:700">Active</th>
-            <th style="padding:10px 14px;text-align:center;font-weight:700">Exits (YTD)</th>
             <th style="padding:10px 14px;text-align:center;font-weight:700">Attrition %</th>
             <th style="padding:10px 14px;text-align:center;font-weight:700">Avg Salary</th>
             <th style="padding:10px 14px;text-align:center;font-weight:700">Total Cost/Month</th>
-            <th style="padding:10px 14px;text-align:center;font-weight:700;border-radius:0 8px 0 0">Avg Age</th>
+            <th style="padding:10px 14px;text-align:center;font-weight:700">Avg Age</th>
+            <th style="padding:10px 14px;text-align:center;font-weight:700;border-radius:0 8px 0 0">Exits (YTD)</th>
           </tr>
         </thead>
         <tbody id="wf-kpi-body">
@@ -3965,11 +3965,11 @@ function renderWorkforceTab(){
       <td style="padding:10px 14px;font-weight:600;color:#1e293b">${k.icon} ${k.label}</td>
       <td style="padding:10px 14px;text-align:center;font-size:16px;font-weight:700;color:${k.color}">${k.cnt}</td>
       <td style="padding:10px 14px;text-align:center;color:#10b981;font-weight:600">${k.active}</td>
-      <td style="padding:10px 14px;text-align:center;color:#ef4444;font-weight:600">${k.exits}</td>
       <td style="padding:10px 14px;text-align:center;color:#ef4444;font-weight:700">${k.attrP}</td>
       <td style="padding:10px 14px;text-align:center;color:#1e293b;font-weight:600">${fmt(k.avgS)}</td>
       <td style="padding:10px 14px;text-align:center;color:#1e293b;font-weight:700">${fmt(k.cost)}</td>
       <td style="padding:10px 14px;text-align:center;color:#64748b">${k.age}</td>
+      <td style="padding:10px 14px;text-align:center;color:#ef4444;font-weight:600">${k.exits}</td>
     </tr>`).join('');
 
   // For chart base still use total
