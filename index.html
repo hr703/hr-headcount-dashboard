@@ -1476,7 +1476,7 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
 
 
   <!-- ══ WORKFORCE ANALYTICS TAB ══ -->
-  <div class="tab-content" id="tab-workforce" style="background:#f0f4f8;margin:-24px;padding:24px;min-height:100vh">
+  <div class="tab-content" id="tab-workforce" style="background:#f0f4f8;margin:-24px;padding:24px">
     <!-- Header -->
     <div style="background:#fff;border-radius:12px;padding:16px 24px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
@@ -1935,7 +1935,7 @@ function render(){
   renderRRTab();
   renderTenureTab();
   renderSalaryBandTab();
-  renderWorkforceTab();
+  // workforce tab only renders on tab switch (charts need visible container)
 }
 
 function renderRevKPIs(){
