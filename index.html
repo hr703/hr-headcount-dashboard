@@ -1942,7 +1942,7 @@ function renderInsights(){
   if(!employees.length){ document.getElementById('insightsGrid').innerHTML='<div class="insight-item"><div class="i-label">Status</div><div class="i-val">No Data</div><div class="i-sub">Add employees to see insights</div></div>'; return; }
   const total=employees.length;
   const topDept=Object.entries(employees.reduce((a,e)=>{ a[e.dept]=(a[e.dept]||0)+1; return a; },{})).sort((a,b)=>b[1]-a[1])[0];
-  const topSalary=employees.reduce((a,e)=>e.salary>a.salary?e:a,employees[0]));
+  const topSalary=employees.reduce((a,e)=>e.salary>a.salary?e:a,employees[0]);
   const avgCtc=total>0?Math.round(employees.reduce((s,e)=>s+(e.salary||0),0)/total):0;
   const noticePct=((employees.filter(e=>e.status==='Serving Notice').length/total)*100).toFixed(1);
 
