@@ -1476,24 +1476,21 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
 
 
   <!-- ══ WORKFORCE ANALYTICS TAB ══ -->
-  <div class="tab-content" id="tab-workforce" style="background:#f0f4f8;margin:-24px;padding:24px">
+  <div class="tab-content" id="tab-workforce">
     <!-- Header -->
-    <div style="background:#fff;border-radius:12px;padding:16px 24px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-      <div>
-        <div style="font-size:20px;font-weight:800;color:#1e293b;letter-spacing:-.3px">HR Analytics Dashboard</div>
-        <div style="font-size:13px;color:#64748b;margin-top:2px">Workforce Insights</div>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <select id="wf-dept-filter" onchange="renderWorkforceTab()" style="padding:7px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;background:#f8fafc;color:#1e293b">
-          <option value="">Department ▾</option>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+      <div class="sec-title" style="margin:0">HR Analytics Dashboard &nbsp;<span style="font-size:13px;font-weight:400;color:var(--muted)">| Workforce Insights</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select id="wf-dept-filter" onchange="renderWorkforceTab()" style="padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text)">
+          <option value="">All Departments</option>
         </select>
-        <select id="wf-gender-filter" onchange="renderWorkforceTab()" style="padding:7px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;background:#f8fafc;color:#1e293b">
-          <option value="">Gender ▾</option>
+        <select id="wf-gender-filter" onchange="renderWorkforceTab()" style="padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text)">
+          <option value="">All Genders</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
         </select>
-        <select id="wf-type-filter" onchange="renderWorkforceTab()" style="padding:7px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;background:#f8fafc;color:#1e293b">
-          <option value="">Type ▾</option>
+        <select id="wf-type-filter" onchange="renderWorkforceTab()" style="padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text)">
+          <option value="">All Types</option>
           <option value="Full Time">Full Time</option>
           <option value="Consultant">Consultant</option>
           <option value="Fixed Term Employee">Fixed Term</option>
@@ -1501,76 +1498,70 @@ header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 
       </div>
     </div>
     <!-- KPI Cards -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px">
-      <div style="background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;gap:14px;border-left:4px solid #4f86c6">
-        <div style="width:48px;height:48px;background:#e8f0fb;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">👥</div>
-        <div><div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Total Employees</div><div id="wf-total" style="font-size:28px;font-weight:800;color:#1e293b;line-height:1.2">—</div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
+      <div class="kpi" style="--kpi-color:#1e3a5f;--kpi-bg:#dbeafe">
+        <div class="icon">👥</div><div class="lbl">Total Employees</div><div id="wf-total" class="val">—</div>
       </div>
-      <div style="background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;gap:14px;border-left:4px solid #e05c5c">
-        <div style="width:48px;height:48px;background:#fdeaea;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">⚠️</div>
-        <div><div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Attrition Rate</div><div id="wf-attrition" style="font-size:28px;font-weight:800;color:#e05c5c;line-height:1.2">—</div></div>
+      <div class="kpi" style="--kpi-color:var(--red);--kpi-bg:#fee2e2">
+        <div class="icon">⚠️</div><div class="lbl">Attrition Rate</div><div id="wf-attrition" class="val" style="color:var(--red)">—</div>
       </div>
-      <div style="background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;gap:14px;border-left:4px solid #2ab7a9">
-        <div style="width:48px;height:48px;background:#e0f5f3;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">💰</div>
-        <div><div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Avg Salary</div><div id="wf-avgsalary" style="font-size:22px;font-weight:800;color:#1e293b;line-height:1.2">—</div></div>
+      <div class="kpi" style="--kpi-color:var(--accent);--kpi-bg:#e0f2fe">
+        <div class="icon">💰</div><div class="lbl">Avg Salary</div><div id="wf-avgsalary" class="val" style="font-size:18px">—</div>
       </div>
-      <div style="background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;gap:14px;border-left:4px solid #f5a623">
-        <div style="width:48px;height:48px;background:#fef3e0;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">🎂</div>
-        <div><div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Average Age</div><div id="wf-avgage" style="font-size:28px;font-weight:800;color:#1e293b;line-height:1.2">—</div></div>
+      <div class="kpi" style="--kpi-color:var(--orange);--kpi-bg:#fef3c7">
+        <div class="icon">🎂</div><div class="lbl">Average Age</div><div id="wf-avgage" class="val">—</div>
       </div>
-      <div style="background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;gap:14px;border-left:4px solid #38b26e">
-        <div style="width:48px;height:48px;background:#e0f5e9;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">📊</div>
-        <div><div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Total Cost/Month</div><div id="wf-totalcost" style="font-size:18px;font-weight:800;color:#1e293b;line-height:1.2">—</div></div>
+      <div class="kpi" style="--kpi-color:var(--green);--kpi-bg:#d1fae5">
+        <div class="icon">📊</div><div class="lbl">Total Cost/Month</div><div id="wf-totalcost" class="val" style="font-size:16px">—</div>
       </div>
-      <div style="background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;gap:14px;border-left:4px solid #8b5cf6">
-        <div style="width:48px;height:48px;background:#ede9fe;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">🏢</div>
-        <div><div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Departments</div><div id="wf-depts" style="font-size:28px;font-weight:800;color:#1e293b;line-height:1.2">—</div></div>
+      <div class="kpi" style="--kpi-color:var(--purple);--kpi-bg:#ede9fe">
+        <div class="icon">🏢</div><div class="lbl">Departments</div><div id="wf-depts" class="val">—</div>
       </div>
     </div>
     <!-- Charts Row 1 -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
-      <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.07)">
-        <div style="font-size:13px;font-weight:700;color:#334155;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">Attrition by Department</div>
+      <div class="card" style="padding:18px">
+        <div class="sec-title">Attrition by Department</div>
         <div style="position:relative;height:220px"><canvas id="wf-chart-attrDept"></canvas></div>
       </div>
-      <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.07)">
-        <div style="font-size:13px;font-weight:700;color:#334155;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">Gender Distribution</div>
+      <div class="card" style="padding:18px">
+        <div class="sec-title">Gender Distribution</div>
         <div style="position:relative;height:220px"><canvas id="wf-chart-gender"></canvas></div>
       </div>
-      <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.07)">
-        <div style="font-size:13px;font-weight:700;color:#334155;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">Employees by Age Group</div>
+      <div class="card" style="padding:18px">
+        <div class="sec-title">Employees by Age Group</div>
         <div style="position:relative;height:220px"><canvas id="wf-chart-age"></canvas></div>
       </div>
     </div>
     <!-- Charts Row 2 -->
     <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px">
-      <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.07)">
-        <div style="font-size:13px;font-weight:700;color:#334155;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">Avg Salary by Department (₹)</div>
+      <div class="card" style="padding:18px">
+        <div class="sec-title">Avg Salary by Department (₹)</div>
         <div style="position:relative;height:220px"><canvas id="wf-chart-salDept"></canvas></div>
       </div>
-      <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.07)">
-        <div style="font-size:13px;font-weight:700;color:#334155;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">Monthly Hiring Trend</div>
+      <div class="card" style="padding:18px">
+        <div class="sec-title">Monthly Hiring Trend</div>
         <div style="position:relative;height:220px"><canvas id="wf-chart-hiring"></canvas></div>
       </div>
     </div>
     <!-- Charts Row 3 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-      <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.07)">
-        <div style="font-size:13px;font-weight:700;color:#334155;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">Attrition by Gender</div>
-        <div style="display:flex;gap:40px;align-items:center;padding:12px 0 8px">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="width:44px;height:44px;background:#e8f0fb;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px">👨</div>
-            <div><div style="font-size:11px;color:#64748b;font-weight:600">Male</div><div id="wf-attr-male" style="font-size:24px;font-weight:800;color:#4f86c6">—</div></div>
+      <div class="card" style="padding:18px">
+        <div class="sec-title">Attrition by Gender</div>
+        <div style="display:flex;gap:32px;align-items:center;padding:8px 0 12px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:40px;height:40px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">👨</div>
+            <div><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Male</div><div id="wf-attr-male" style="font-size:22px;font-weight:800;color:#1e3a5f">—</div></div>
           </div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="width:44px;height:44px;background:#fde8f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px">👩</div>
-            <div><div style="font-size:11px;color:#64748b;font-weight:600">Female</div><div id="wf-attr-female" style="font-size:24px;font-weight:800;color:#e05c5c">—</div></div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:40px;height:40px;background:#fee2e2;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">👩</div>
+            <div><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Female</div><div id="wf-attr-female" style="font-size:22px;font-weight:800;color:var(--red)">—</div></div>
           </div>
         </div>
         <div style="position:relative;height:160px"><canvas id="wf-chart-attrGender"></canvas></div>
       </div>
-      <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.07)">
-        <div style="font-size:13px;font-weight:700;color:#334155;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">Headcount by Employee Type</div>
+      <div class="card" style="padding:18px">
+        <div class="sec-title">Headcount by Employee Type</div>
         <div style="position:relative;height:220px"><canvas id="wf-chart-type"></canvas></div>
       </div>
     </div>
@@ -3930,7 +3921,7 @@ function renderWorkforceTab(){
   function destroyChart(id){ if(_wfCharts[id]){ _wfCharts[id].destroy(); delete _wfCharts[id]; } }
   function mkChart(id, cfg){ destroyChart(id); _wfCharts[id]=new Chart(document.getElementById(id).getContext('2d'), cfg); }
 
-  const COLORS=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#f97316','#14b8a6','#6366f1','#84cc16','#e11d48'];
+  const COLORS=['#1e3a5f','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#ef4444','#14b8a6','#f97316','#6366f1','#ec4899','#2d5986','#06b6d4'];
 
   // 1. Attrition by Dept
   const deptExited={};
@@ -3950,7 +3941,7 @@ function renderWorkforceTab(){
   const gData=[maleC,femC,...(otherC>0?[otherC]:[])];
   mkChart('wf-chart-gender',{
     type:'doughnut',
-    data:{ labels:gLabels, datasets:[{data:gData, backgroundColor:['#3b82f6','#ec4899','#10b981'], borderWidth:2}] },
+    data:{ labels:gLabels, datasets:[{data:gData, backgroundColor:['#1e3a5f','#0ea5e9','#10b981'], borderWidth:2}] },
     options:{ plugins:{legend:{position:'bottom',labels:{font:{size:12}}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} (${total>0?((ctx.raw/total)*100).toFixed(1):0}%)`}}}, maintainAspectRatio:false }
   });
 
@@ -3973,6 +3964,7 @@ function renderWorkforceTab(){
   });
 
   // 4. Salary by Dept
+
   const deptSalMap={};
   base.forEach(e=>{ if(!e.dept) return; if(!deptSalMap[e.dept]) deptSalMap[e.dept]={sum:0,cnt:0}; deptSalMap[e.dept].sum+=e.salary||0; deptSalMap[e.dept].cnt++; });
   const salDepts=Object.entries(deptSalMap).map(([d,v])=>({dept:d,avg:Math.round(v.sum/v.cnt)})).sort((a,b)=>b.avg-a.avg).slice(0,8);
@@ -4007,7 +3999,7 @@ function renderWorkforceTab(){
   document.getElementById('wf-attr-female').textContent = femPct;
   mkChart('wf-chart-attrGender',{
     type:'bar',
-    data:{ labels:['Male Exits','Female Exits'], datasets:[{data:[maleExited,femExited], backgroundColor:['#3b82f6','#ec4899'], borderRadius:8}] },
+    data:{ labels:['Male Exits','Female Exits'], datasets:[{data:[maleExited,femExited], backgroundColor:['#1e3a5f','#ef4444'], borderRadius:8}] },
     options:{ plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{grid:{display:false},ticks:{stepSize:1}}}, maintainAspectRatio:false }
   });
 
@@ -4016,7 +4008,7 @@ function renderWorkforceTab(){
   base.forEach(e=>{ const t=e.type||'Unknown'; typeMap[t]=(typeMap[t]||0)+1; });
   mkChart('wf-chart-type',{
     type:'doughnut',
-    data:{ labels:Object.keys(typeMap), datasets:[{data:Object.values(typeMap), backgroundColor:['#3b82f6','#f59e0b','#10b981','#8b5cf6'], borderWidth:2}] },
+    data:{ labels:Object.keys(typeMap), datasets:[{data:Object.values(typeMap), backgroundColor:['#1e3a5f','#0ea5e9','#10b981','#f59e0b'], borderWidth:2}] },
     options:{ plugins:{legend:{position:'bottom',labels:{font:{size:12}}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} (${total>0?((ctx.raw/total)*100).toFixed(1):0}%)`}}}, maintainAspectRatio:false }
   });
 }
