@@ -1922,7 +1922,7 @@ function renderKPIs(){
   document.getElementById('s-loc-detail').textContent  = locs.length>0 ? 'Top: '+topLoc : 'No locations added';
 
   // Exited Employees table in Overview
-  const allExitedOv = employees.filter(e=>e.status==='Exited'||(e.exitDate&&e.exitDate.trim())).sort((a,b)=>(b.exitDate||'').localeCompare(a.exitDate||''));
+  const allExitedOv = employees.filter(e=>e.status==='Exited'||((e.lwd||e.exitDate||'').trim())).sort((a,b)=>(b.lwd||b.exitDate||'').localeCompare(a.lwd||a.exitDate||''));
   const ovHdr=document.getElementById('ov-exited-hdr');
   if(ovHdr) ovHdr.textContent='All Exited Employees (Total: '+allExitedOv.length+')';
   const ovExBody=document.getElementById('ov-exited-body');
@@ -1931,7 +1931,7 @@ function renderKPIs(){
     <td style="padding:8px 10px;font-weight:600">${e.name}</td>
     <td style="padding:8px 10px">${e.dept||'-'}</td>
     <td style="padding:8px 10px">${e.desig||'-'}</td>
-    <td style="padding:8px 10px">${e.exitDate||'-'}</td>
+    <td style="padding:8px 10px">${e.lwd||e.exitDate||'-'}</td>
     <td style="padding:8px 10px">${e.exitReason||'-'}</td>
     <td style="padding:8px 10px">${e.exitSubReason||'-'}</td>
     <td style="padding:8px 10px;text-align:right;font-weight:600">${fmt(e.salary||0)}</td>
@@ -3100,7 +3100,7 @@ function initApp(){
 function populateMvMonthFilter(){
   const months=[...new Set(employees.map(e=>{ const d=parseDoj(e.doj); return d?d.substring(0,7):null; }).filter(Boolean))].sort().filter(m=>m>='2025-04');
   // Also include exit months
-  employees.forEach(e=>{ if(e.exitDate&&e.exitDate.length>=7) months.push(e.exitDate.substring(0,7)); });
+  employees.forEach(e=>{ const _ld=e.lwd||e.exitDate||''; if(_ld&&_ld.length>=7) months.push((parseDoj(_ld)||_ld).substring(0,7)); });
   const uniq=[...new Set(months)].sort().filter(m=>m>='2025-04');
   const sel=document.getElementById('mv-month');
   if(!sel) return;
@@ -3117,7 +3117,7 @@ function renderMovementTab(){
   const opening = employees.filter(e=>{
     const d=parseDoj(e.doj);
     const dojOk = !d || d<month;
-    const notExitedBefore = !(e.exitDate && (parseDoj(e.exitDate)||e.exitDate).substring(0,7)<month);
+    const _lwd0=e.lwd||e.exitDate||''; const notExitedBefore = !(_lwd0 && (parseDoj(_lwd0)||_lwd0).substring(0,7)<month);
     return dojOk && notExitedBefore;
   });
 
@@ -3125,7 +3125,7 @@ function renderMovementTab(){
   const joiners = employees.filter(e=>parseDoj(e.doj).substring(0,7)===month);
 
   // Exits = exitDate in this month
-  const exits = employees.filter(e=>{ const ed=parseDoj(e.exitDate); return ed && ed.substring(0,7)===month; });
+  const exits = employees.filter(e=>{ const ed=parseDoj(e.lwd||e.exitDate||''); return ed && ed.substring(0,7)===month; });
 
   const closing = opening.length + joiners.length - exits.length;
 
@@ -3243,7 +3243,7 @@ function renderMovementTab(){
   </tr>`).join('') : '<tr><td colspan="6" class="empty-msg">No exits this month</td></tr>';
 
   // All Exited Employees — filtered by selected month (parse exitDate to handle DD-Mon-YYYY format)
-  const allExited = employees.filter(e=>{ const ed=parseDoj(e.exitDate); return ed && ed.substring(0,7)===month; }).sort((a,b)=>(parseDoj(b.exitDate)||'').localeCompare(parseDoj(a.exitDate)||''));
+  const allExited = employees.filter(e=>{ const ed=parseDoj(e.lwd||e.exitDate||''); return ed && ed.substring(0,7)===month; }).sort((a,b)=>(parseDoj(b.lwd||b.exitDate||'')||'').localeCompare(parseDoj(a.lwd||a.exitDate||'')||''));
   const aeHdr=document.getElementById('mv-all-exits-hdr');
   if(aeHdr) aeHdr.textContent='Exited Employees — '+fmtMonth(month)+' (Total: '+allExited.length+')';
   const aeBody=document.getElementById('mv-all-exits-body');
@@ -3252,29 +3252,29 @@ function renderMovementTab(){
     <td style="padding:8px 10px;font-weight:600">${e.name}</td>
     <td style="padding:8px 10px">${e.dept||'-'}</td>
     <td style="padding:8px 10px">${e.desig||'-'}</td>
-    <td style="padding:8px 10px">${e.exitDate||'-'}</td>
+    <td style="padding:8px 10px">${e.lwd||e.exitDate||'-'}</td>
     <td style="padding:8px 10px">${e.exitReason||'-'}</td>
     <td style="padding:8px 10px">${e.exitSubReason||'-'}</td>
     <td style="padding:8px 10px;text-align:right;font-weight:600">${fmt(e.salary||0)}</td>
   </tr>`).join('') : '<tr><td colspan="8" class="empty-msg">No exited employees</td></tr>';
 }
 function renderAttritionTab(){
-  const exited = employees.filter(e=>e.status==='Exited'||(e.exitDate&&e.exitDate.trim()))
-    .sort((a,b)=>(b.exitDate||'').localeCompare(a.exitDate||''));
+  const exited = employees.filter(e=>e.status==='Exited'||((e.lwd||e.exitDate||'').trim()))
+    .sort((a,b)=>(b.lwd||b.exitDate||'').localeCompare(a.lwd||a.exitDate||''));
   const total = employees.length;
   const thisMonth = new Date().toISOString().substring(0,7);
 
   // KPIs
   document.getElementById('attr-total').textContent = exited.length;
   document.getElementById('attr-rate').textContent  = ((exited.length/total)*100).toFixed(1)+'%';
-  const thisMonthExits = exited.filter(e=>(e.exitDate||'').substring(0,7)===thisMonth);
+  const thisMonthExits = exited.filter(e=>((e.lwd||e.exitDate||'')).substring(0,7)===thisMonth);
   document.getElementById('attr-this-month').textContent = thisMonthExits.length;
   document.getElementById('attr-this-month-lbl').textContent = fmtMonth(thisMonth);
   document.getElementById('attr-exit-cost').textContent = fmt(exited.reduce((s,e)=>s+(e.salary||0),0));
 
   // Month-wise
   const byMonth={};
-  exited.forEach(e=>{ const m=(e.exitDate||'Unknown').substring(0,7); if(!byMonth[m]) byMonth[m]={cnt:0,cost:0}; byMonth[m].cnt++; byMonth[m].cost+=(e.salary||0); });
+  exited.forEach(e=>{ const m=((e.lwd||e.exitDate||'Unknown')).substring(0,7); if(!byMonth[m]) byMonth[m]={cnt:0,cost:0}; byMonth[m].cnt++; byMonth[m].cost+=(e.salary||0); });
   document.getElementById('attr-month-body').innerHTML = Object.entries(byMonth).sort((a,b)=>b[1].cnt-a[1].cnt).map(([m])=>`
     <tr style="border-bottom:1px solid #f1f5f9">
       <td style="padding:8px 12px;font-weight:600">${fmtMonth(m)}</td>
@@ -3400,7 +3400,7 @@ function renderAttritionTab(){
       <td style="padding:7px 10px">${e.dept||'-'}</td>
       <td style="padding:7px 10px">${e.desig||'-'}</td>
       <td style="padding:7px 10px">${e.type||'-'}</td>
-      <td style="padding:7px 10px">${e.exitDate||'-'}</td>
+      <td style="padding:7px 10px">${e.lwd||e.exitDate||'-'}</td>
       <td style="padding:7px 10px">${e.exitReason||'-'}</td>
       <td style="padding:7px 10px">${e.exitSubReason||'-'}</td>
       <td style="padding:7px 10px;text-align:right;font-weight:600">${fmt(e.salary||0)}</td>
@@ -3587,7 +3587,7 @@ function renderTenureTab(){
   activeEmps.forEach(e=>{ const d=e.dept||'Unknown'; if(!deptSalMap[d]) deptSalMap[d]=[]; deptSalMap[d].push(e.salary); });
   const deptAvgSal={};
   Object.entries(deptSalMap).forEach(([d,arr])=>{ deptAvgSal[d]=arr.reduce((s,v)=>s+v,0)/arr.length; });
-  const exitedEmps=employees.filter(e=>e.status==='Exited'||(e.exitDate&&e.exitDate.trim()));
+  const exitedEmps=employees.filter(e=>e.status==='Exited'||((e.lwd||e.exitDate||'').trim()));
   const totalByDept={};
   employees.forEach(e=>{ const d=e.dept||'Unknown'; totalByDept[d]=(totalByDept[d]||0)+1; });
   exitedEmps.forEach(e=>{ const d=e.dept||'Unknown'; deptExitMap[d]=(deptExitMap[d]||0)+1; });
