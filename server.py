@@ -8,13 +8,25 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 API_TOKEN    = os.environ.get('API_TOKEN', 'hr-secure-2025')
 
 # ── STORAGE ──────────────────────────────────────────────────────────────────
+_db_available = False
+
+def _file_load():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r') as f:
+            return json.load(f)
+    return {'emp_data':[],'emp_depts':[],'emp_revisions':[],'emp_esops':[],'emp_esop_pool':50000}
+
+def _file_save(data):
+    with open(DATA_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+
 if DATABASE_URL:
-    import psycopg2
+    try:
+        import psycopg2
 
-    def _conn():
-        return psycopg2.connect(DATABASE_URL, sslmode='require')
+        def _conn():
+            return psycopg2.connect(DATABASE_URL, sslmode='require')
 
-    def _init():
         with _conn() as c:
             with c.cursor() as cur:
                 cur.execute('''CREATE TABLE IF NOT EXISTS hr_appdata
@@ -23,9 +35,14 @@ if DATABASE_URL:
                                VALUES (1, %s) ON CONFLICT (id) DO NOTHING''',
                             [json.dumps({'emp_data':[],'emp_depts':[],'emp_revisions':[],'emp_esops':[],'emp_esop_pool':50000})])
                 c.commit()
-    _init()
+        _db_available = True
+        print('[DB] Connected successfully')
+    except Exception as _db_err:
+        print(f'[DB INIT ERROR] {_db_err} — using file storage')
+        _db_available = False
 
-    def load_data():
+def load_data():
+    if _db_available:
         try:
             with _conn() as c:
                 with c.cursor() as cur:
@@ -34,26 +51,19 @@ if DATABASE_URL:
                     return json.loads(row[0]) if row else {}
         except Exception as e:
             print(f'[DB READ ERROR] {e}')
-            return {}
+    return _file_load()
 
-    def save_data(data):
+def save_data(data):
+    if _db_available:
         try:
             with _conn() as c:
                 with c.cursor() as cur:
                     cur.execute('UPDATE hr_appdata SET data=%s WHERE id=1', [json.dumps(data)])
                     c.commit()
+            return
         except Exception as e:
             print(f'[DB WRITE ERROR] {e}')
-else:
-    def load_data():
-        if os.path.exists(DATA_FILE):
-            with open(DATA_FILE, 'r') as f:
-                return json.load(f)
-        return {'emp_data':[],'emp_depts':[],'emp_revisions':[],'emp_esops':[],'emp_esop_pool':50000}
-
-    def save_data(data):
-        with open(DATA_FILE, 'w') as f:
-            json.dump(data, f, indent=2)
+    _file_save(data)
 # ─────────────────────────────────────────────────────────────────────────────
 
 class Handler(BaseHTTPRequestHandler):
